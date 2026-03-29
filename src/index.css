@@ -1,0 +1,216 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap');
+
+@layer base {
+  :root {
+    /* Babyland Brand Colors - Playful Blue & Pink Theme */
+    --background: 200 20% 98%;
+    --foreground: 210 25% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 210 25% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 210 25% 15%;
+
+    /* Primary - Cyan/Turquoise Blue */
+    --primary: 195 100% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary - Soft Pink */
+    --secondary: 330 85% 65%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 200 15% 92%;
+    --muted-foreground: 210 15% 45%;
+
+    /* Accent - Light Pink */
+    --accent: 330 70% 92%;
+    --accent-foreground: 330 85% 45%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 200 20% 88%;
+    --input: 200 20% 88%;
+    --ring: 195 100% 50%;
+
+    --radius: 1rem;
+
+    /* Custom Babyland Colors */
+    --baby-blue: 195 100% 50%;
+    --baby-blue-light: 195 100% 95%;
+    --baby-pink: 330 85% 65%;
+    --baby-pink-light: 330 70% 95%;
+    --baby-gradient: linear-gradient(135deg, hsl(195, 100%, 50%) 0%, hsl(330, 85%, 65%) 100%);
+    --baby-gradient-soft: linear-gradient(135deg, hsl(195, 100%, 95%) 0%, hsl(330, 70%, 95%) 100%);
+
+    /* Shadows */
+    --shadow-sm: 0 2px 8px -2px hsl(195 100% 50% / 0.15);
+    --shadow-md: 0 8px 24px -4px hsl(195 100% 50% / 0.2);
+    --shadow-lg: 0 16px 48px -8px hsl(195 100% 50% / 0.25);
+    --shadow-pink: 0 8px 24px -4px hsl(330 85% 65% / 0.3);
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 210 25% 8%;
+    --foreground: 200 20% 95%;
+
+    --card: 210 25% 12%;
+    --card-foreground: 200 20% 95%;
+
+    --popover: 210 25% 12%;
+    --popover-foreground: 200 20% 95%;
+
+    --primary: 195 100% 55%;
+    --primary-foreground: 210 25% 8%;
+
+    --secondary: 330 75% 55%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 210 25% 18%;
+    --muted-foreground: 200 15% 60%;
+
+    --accent: 330 60% 25%;
+    --accent-foreground: 330 70% 85%;
+
+    --destructive: 0 62% 45%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 210 25% 20%;
+    --input: 210 25% 20%;
+    --ring: 195 100% 55%;
+
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    direction: rtl;
+  }
+
+  body {
+    @apply bg-background text-foreground font-cairo antialiased;
+  }
+}
+
+@layer components {
+  .gradient-text {
+    @apply bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent;
+  }
+
+  .gradient-bg {
+    background: var(--baby-gradient);
+  }
+
+  .gradient-bg-soft {
+    background: var(--baby-gradient-soft);
+  }
+
+  .card-hover {
+    @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
+  }
+
+  .btn-bounce {
+    @apply transition-transform duration-200 active:scale-95;
+  }
+
+  .float-animation {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  .pulse-soft {
+    animation: pulse-soft 2s ease-in-out infinite;
+  }
+
+  .slide-up {
+    animation: slide-up 0.5s ease-out;
+  }
+}
+
+@layer utilities {
+  .shadow-baby {
+    box-shadow: var(--shadow-md);
+  }
+
+  .shadow-baby-lg {
+    box-shadow: var(--shadow-lg);
+  }
+
+  .shadow-pink {
+    box-shadow: var(--shadow-pink);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes pulse-soft {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--muted)) 0%,
+    hsl(var(--background)) 50%,
+    hsl(var(--muted)) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
