@@ -26,7 +26,7 @@ const AdminDashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   useEffect(() => {
-    const auth = sessionStorage.getItem('babyland_admin');
+    const auth = sessionStorage.getItem('bubbles_admin');
     if (!auth) {
       navigate('/admin');
     } else {
@@ -35,7 +35,7 @@ const AdminDashboard = () => {
   }, [navigate]);
 
   const handleLogout = () => {
-    sessionStorage.removeItem('babyland_admin');
+    sessionStorage.removeItem('bubbles_admin');
     navigate('/admin');
   };
 

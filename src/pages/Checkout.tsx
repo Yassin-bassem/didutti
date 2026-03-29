@@ -350,7 +350,7 @@ const Checkout = () => {
       const orderNumber = nextOrderNum || 1;
 
       // Check if staff member is logged in
-      const staffSession = sessionStorage.getItem('babyland_staff');
+      const staffSession = sessionStorage.getItem('bubbles_staff');
       const staffData = staffSession ? JSON.parse(staffSession) : null;
 
       // Create order

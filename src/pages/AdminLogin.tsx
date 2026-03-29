@@ -23,7 +23,7 @@ const AdminLogin = () => {
     
     if (loginMode === 'admin') {
       if (password === ADMIN_PASSWORD) {
-        sessionStorage.setItem('babyland_admin', 'true');
+        sessionStorage.setItem('bubbles_admin', 'true');
         toast.success('تم تسجيل الدخول بنجاح');
         navigate('/admin/dashboard');
       } else {
@@ -46,7 +46,7 @@ const AdminLogin = () => {
       }
 
       const staffMember = data[0];
-      sessionStorage.setItem('babyland_staff', JSON.stringify({
+      sessionStorage.setItem('bubbles_staff', JSON.stringify({
         id: staffMember.id,
         name: staffMember.name,
       }));
