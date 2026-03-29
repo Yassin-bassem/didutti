@@ -11,7 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import Header from '@/components/Header';
 import ProductImage from '@/components/ProductImage';
-import logoImage from '@/assets/babyland-logo.jpg';
+import logoImage from '@/assets/bubbles-logo.jpeg';
 
 // Old customers data - format: name | shopName | address | phone
 const oldCustomersData = [
@@ -350,7 +350,7 @@ const Checkout = () => {
       const orderNumber = nextOrderNum || 1;
 
       // Check if staff member is logged in
-      const staffSession = sessionStorage.getItem('babyland_staff');
+      const staffSession = sessionStorage.getItem('bubbles_staff');
       const staffData = staffSession ? JSON.parse(staffSession) : null;
 
       // Create order
@@ -481,7 +481,7 @@ const Checkout = () => {
   const generateWhatsAppInvoice = () => {
     if (!orderNumber || !orderDetails) return '';
     
-    let invoiceText = `🧸 *Babyland - فاتورة رقم ${orderNumber}*\n\n`;
+    let invoiceText = `🧸 *Bubbles - فاتورة رقم ${orderNumber}*\n\n`;
     invoiceText += `👤 *العميل:* ${orderDetails.customerName}\n`;
     if (orderDetails.shopName) invoiceText += `🏪 *المحل:* ${orderDetails.shopName}\n`;
     invoiceText += `📞 *الهاتف:* ${orderDetails.phone}\n`;
@@ -509,7 +509,7 @@ const Checkout = () => {
       invoiceText += `💵 *العربون (${methodLabel}):* -${orderDetails.depositAmount.toFixed(2)} ج.م\n`;
     }
     invoiceText += `✅ *المطلوب:* ${orderDetails.total.toFixed(2)} ج.م\n\n`;
-    invoiceText += `شكراً لتعاملكم مع Babyland 🎀`;
+    invoiceText += `شكراً لتعاملكم مع Bubbles 🎀`;
     
     return invoiceText;
   };

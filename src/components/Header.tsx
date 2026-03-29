@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { ShoppingCart, Settings } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
-import babylandLogo from '@/assets/baby-land-logo.jpg';
+import bubblesLogo from '@/assets/bubbles-logo.jpeg';
 
 const Header = () => {
   const { totalItems } = useCart();
@@ -10,8 +10,8 @@ const Header = () => {
     <header className="sticky top-0 z-50 w-full border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
       <div className="container flex h-16 items-center justify-between">
         <Link to="/" className="flex items-center gap-3 transition-transform hover:scale-105">
-          <img src={babylandLogo} alt="Babyland" className="h-12 w-auto object-contain" />
-          <span className="text-xl font-bold gradient-text">Babyland</span>
+          <img src={bubblesLogo} alt="Bubbles" className="h-12 w-auto object-contain" />
+          <span className="text-xl font-bold gradient-text">Bubbles</span>
         </Link>
 
         <nav className="flex items-center gap-4">

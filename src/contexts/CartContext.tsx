@@ -38,8 +38,8 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-const CART_STORAGE_KEY = 'babyland_cart';
-const EXTRA_INFO_STORAGE_KEY = 'babyland_extra_info';
+const CART_STORAGE_KEY = 'bubbles_cart';
+const EXTRA_INFO_STORAGE_KEY = 'bubbles_extra_info';
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [items, setItems] = useState<CartItem[]>(() => {

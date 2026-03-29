@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import babylandLogo from '@/assets/babyland-logo.jpg';
+import bubblesLogo from '@/assets/bubbles-logo.jpeg';
 
 const ADMIN_PASSWORD = '1980';
 
@@ -23,7 +23,7 @@ const AdminLogin = () => {
     
     if (loginMode === 'admin') {
       if (password === ADMIN_PASSWORD) {
-        sessionStorage.setItem('babyland_admin', 'true');
+        sessionStorage.setItem('bubbles_admin', 'true');
         toast.success('تم تسجيل الدخول بنجاح');
         navigate('/admin/dashboard');
       } else {
@@ -46,7 +46,7 @@ const AdminLogin = () => {
       }
 
       const staffMember = data[0];
-      sessionStorage.setItem('babyland_staff', JSON.stringify({
+      sessionStorage.setItem('bubbles_staff', JSON.stringify({
         id: staffMember.id,
         name: staffMember.name,
       }));
@@ -60,8 +60,8 @@ const AdminLogin = () => {
       <Card className="w-full max-w-md border-2 border-primary/20 shadow-baby-lg">
         <CardHeader className="text-center space-y-4">
           <img
-            src={babylandLogo}
-            alt="Babyland"
+            src={bubblesLogo}
+            alt="Bubbles"
             className="w-24 h-24 mx-auto rounded-full shadow-baby float-animation"
           />
           <CardTitle className="text-2xl gradient-text">
