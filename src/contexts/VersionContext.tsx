@@ -42,8 +42,26 @@ export const VersionProvider = ({ children }: { children: ReactNode }) => {
     const active = data?.find(v => v.is_active);
     if (active) {
       setActiveVersionState(active);
+      setLoading(false);
+    } else if (!data || data.length === 0) {
+      // Auto-create a default version for new/remixed projects
+      const { data: newVersion, error: createError } = await supabase
+        .from('versions')
+        .insert({ name: '2026', is_active: true })
+        .select()
+        .single();
+      if (!createError && newVersion) {
+        setVersions([newVersion]);
+        setActiveVersionState(newVersion);
+      }
+      setLoading(false);
+    } else {
+      // Versions exist but none active - activate the first one
+      const first = data[0];
+      await supabase.from('versions').update({ is_active: true }).eq('id', first.id);
+      setActiveVersionState({ ...first, is_active: true });
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => {
