@@ -51,7 +51,7 @@ const Index = () => {
       <main className="container py-6 space-y-6">
         {/* Hero Section */}
         <div className="text-center space-y-2 py-4">
-          <h1 className="text-3xl font-bold gradient-text">مرحباً بك في Babyland</h1>
+          <h1 className="text-3xl font-bold gradient-text">مرحباً بك في Bubbles</h1>
           <p className="text-muted-foreground">امسح كود المنتج أو ابحث بالكود لإضافته للسلة</p>
         </div>
 

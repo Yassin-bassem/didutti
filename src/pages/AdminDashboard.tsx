@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, Link, Outlet, useLocation } from 'react-router-dom';
 import { Package, ShoppingCart, Users, BarChart3, LogOut, Wallet, SearchCode, FileText, ImagePlus, Menu, X, Bell, UserCog } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import babylandLogo from '@/assets/babyland-logo.jpg';
+import bubblesLogo from '@/assets/bubbles-logo.jpeg';
 import { VersionProvider } from '@/contexts/VersionContext';
 import VersionSelector from '@/components/VersionSelector';
 
@@ -73,7 +73,7 @@ const AdminDashboard = () => {
           <div className="p-4 border-b border-border min-w-[256px] lg:min-w-0">
             <div className="flex items-center justify-between">
               <Link to="/" className="flex items-center gap-3">
-                <img src={babylandLogo} alt="Babyland" className="h-10 w-10 rounded-full flex-shrink-0" />
+                <img src={bubblesLogo} alt="Bubbles" className="h-10 w-10 rounded-full flex-shrink-0" />
                 {sidebarOpen && <span className="font-bold gradient-text whitespace-nowrap">لوحة التحكم</span>}
               </Link>
               <Button
