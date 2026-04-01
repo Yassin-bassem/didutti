@@ -963,7 +963,7 @@ const Orders = () => {
                   className="w-full"
                   onClick={async () => {
                     const calcSubtotal = selectedOrder.items?.reduce((sum, item) => sum + calculateItemTotal(item), 0) || 0;
-                    const calcTotal = calcSubtotal - selectedOrder.deposit_amount;
+                    const calcTotal = calcSubtotal - selectedOrder.deposit_amount - (selectedOrder.discount || 0);
                     
                     const { error } = await supabase.from('orders').update({
                       customer_name: selectedOrder.customer_name,
