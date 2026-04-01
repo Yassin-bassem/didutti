@@ -75,6 +75,16 @@ const calculateItemTotal = (item: OrderItem): number => {
   return item.price * item.quantity * multiplier;
 };
 
+// Calculate actual discount amount based on type
+const getDiscountAmount = (order: { discount: number; discount_type: string | null; }, subtotal: number): number => {
+  const discount = order.discount || 0;
+  if (!discount) return 0;
+  if (order.discount_type === 'percent') {
+    return (subtotal * discount) / 100;
+  }
+  return discount;
+};
+
 const Orders = () => {
   const { activeVersion } = useVersion();
   const [orders, setOrders] = useState<Order[]>([]);
