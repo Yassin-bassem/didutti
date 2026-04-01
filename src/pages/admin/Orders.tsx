@@ -947,6 +947,16 @@ const Orders = () => {
                       dir="ltr"
                     />
                   </div>
+                  <div>
+                    <label className="text-sm text-muted-foreground">الخصم</label>
+                    <Input
+                      type="number"
+                      min="0"
+                      value={selectedOrder.discount || 0}
+                      onChange={(e) => setSelectedOrder({ ...selectedOrder, discount: parseFloat(e.target.value) || 0 })}
+                      dir="ltr"
+                    />
+                  </div>
                 </div>
                 <Button 
                   variant="outline" 
