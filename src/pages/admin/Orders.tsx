@@ -1093,10 +1093,14 @@ const Orders = () => {
               <div className="text-left space-y-1 border-t pt-4">
                 {(() => {
                   const calcSubtotal = selectedOrder.items?.reduce((sum, item) => sum + calculateItemTotal(item), 0) || 0;
-                  const calcTotal = calcSubtotal - selectedOrder.deposit_amount;
+                  const calcDiscount = selectedOrder.discount || 0;
+                  const calcTotal = calcSubtotal - selectedOrder.deposit_amount - calcDiscount;
                   return (
                     <>
                       <p>الإجمالي الفرعي: {calcSubtotal.toFixed(2)} ج.م</p>
+                      {calcDiscount > 0 && (
+                        <p className="text-orange-600">الخصم: -{calcDiscount.toFixed(2)} ج.م</p>
+                      )}
                       {selectedOrder.deposit_amount > 0 && (
                         <p className="text-secondary">العربون: -{selectedOrder.deposit_amount.toFixed(2)} ج.م</p>
                       )}
