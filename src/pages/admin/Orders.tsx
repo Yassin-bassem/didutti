@@ -360,7 +360,7 @@ const Orders = () => {
       const newSubtotal = items.reduce((sum, item) => sum + calculateItemTotal(item), 0);
       await supabase.from('orders').update({
         subtotal: newSubtotal,
-        total: newSubtotal - selectedOrder.deposit_amount - (selectedOrder.discount || 0),
+        total: newSubtotal - selectedOrder.deposit_amount - getDiscountAmount(selectedOrder, newSubtotal),
       }).eq('id', selectedOrder.id);
       
       loadOrders();
