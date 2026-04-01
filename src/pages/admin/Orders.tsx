@@ -960,13 +960,24 @@ const Orders = () => {
                   </div>
                   <div>
                     <label className="text-sm text-muted-foreground">الخصم</label>
-                    <Input
-                      type="number"
-                      min="0"
-                      value={selectedOrder.discount || 0}
-                      onChange={(e) => setSelectedOrder({ ...selectedOrder, discount: parseFloat(e.target.value) || 0 })}
-                      dir="ltr"
-                    />
+                    <div className="flex gap-2">
+                      <Input
+                        type="number"
+                        min="0"
+                        value={selectedOrder.discount || 0}
+                        onChange={(e) => setSelectedOrder({ ...selectedOrder, discount: parseFloat(e.target.value) || 0 })}
+                        dir="ltr"
+                        className="flex-1"
+                      />
+                      <select
+                        className="flex h-10 rounded-md border border-input bg-background px-2 py-2 text-sm ring-offset-background"
+                        value={selectedOrder.discount_type || 'amount'}
+                        onChange={(e) => setSelectedOrder({ ...selectedOrder, discount_type: e.target.value })}
+                      >
+                        <option value="amount">مبلغ</option>
+                        <option value="percent">%</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
                 <Button 
