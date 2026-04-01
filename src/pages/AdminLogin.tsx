@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import bubblesLogo from '@/assets/bubbles-logo.jpeg';
 
-const ADMIN_PASSWORD = '1980';
+const ADMIN_PASSWORD = '2580';
 
 const AdminLogin = () => {
   const navigate = useNavigate();
