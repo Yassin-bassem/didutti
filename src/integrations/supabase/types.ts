@@ -211,6 +211,7 @@ export type Database = {
           delivery_date: string | null
           deposit_amount: number | null
           deposit_method: string | null
+          discount: number | null
           extra_info: string | null
           id: string
           order_number: number
@@ -233,6 +234,7 @@ export type Database = {
           delivery_date?: string | null
           deposit_amount?: number | null
           deposit_method?: string | null
+          discount?: number | null
           extra_info?: string | null
           id?: string
           order_number?: number
@@ -255,6 +257,7 @@ export type Database = {
           delivery_date?: string | null
           deposit_amount?: number | null
           deposit_method?: string | null
+          discount?: number | null
           extra_info?: string | null
           id?: string
           order_number?: number
