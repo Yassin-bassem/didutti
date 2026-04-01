@@ -505,7 +505,7 @@ const Orders = () => {
         </table>
         <div class="totals">
           <p>الإجمالي الفرعي: ${calculatedSubtotal.toFixed(2)} ج.م</p>
-          ${orderDiscount > 0 ? `<p>الخصم: -${orderDiscount.toFixed(2)} ج.م</p>` : ''}
+          ${orderDiscount > 0 ? `<p>الخصم${order.discount_type === 'percent' ? ` (${order.discount}%)` : ''}: -${orderDiscount.toFixed(2)} ج.م</p>` : ''}
           ${order.deposit_amount > 0 ? `<p>العربون (${order.deposit_method}): -${order.deposit_amount.toFixed(2)} ج.م</p>` : ''}
           <p class="total">المطلوب: ${calculatedTotal.toFixed(2)} ج.م</p>
         </div>
