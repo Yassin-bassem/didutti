@@ -31,6 +31,7 @@ interface Order {
   shipping_company: string | null;
   deposit_method: string | null;
   deposit_amount: number;
+  discount: number;
   subtotal: number;
   total: number;
   status: string;
