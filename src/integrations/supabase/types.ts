@@ -212,6 +212,7 @@ export type Database = {
           deposit_amount: number | null
           deposit_method: string | null
           discount: number | null
+          discount_type: string | null
           extra_info: string | null
           id: string
           order_number: number
@@ -235,6 +236,7 @@ export type Database = {
           deposit_amount?: number | null
           deposit_method?: string | null
           discount?: number | null
+          discount_type?: string | null
           extra_info?: string | null
           id?: string
           order_number?: number
@@ -258,6 +260,7 @@ export type Database = {
           deposit_amount?: number | null
           deposit_method?: string | null
           discount?: number | null
+          discount_type?: string | null
           extra_info?: string | null
           id?: string
           order_number?: number

@@ -1,0 +1,1 @@
+ALTER TABLE public.orders ADD COLUMN discount_type text DEFAULT 'amount';

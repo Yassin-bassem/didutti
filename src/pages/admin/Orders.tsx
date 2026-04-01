@@ -32,6 +32,7 @@ interface Order {
   deposit_method: string | null;
   deposit_amount: number;
   discount: number;
+  discount_type: string | null;
   subtotal: number;
   total: number;
   status: string;
@@ -72,6 +73,16 @@ const getDescriptionMultiplier = (description: string | null): number => {
 const calculateItemTotal = (item: OrderItem): number => {
   const multiplier = getDescriptionMultiplier(item.product_description);
   return item.price * item.quantity * multiplier;
+};
+
+// Calculate actual discount amount based on type
+const getDiscountAmount = (order: { discount: number; discount_type: string | null; }, subtotal: number): number => {
+  const discount = order.discount || 0;
+  if (!discount) return 0;
+  if (order.discount_type === 'percent') {
+    return (subtotal * discount) / 100;
+  }
+  return discount;
 };
 
 const Orders = () => {
@@ -315,7 +326,7 @@ const Orders = () => {
       const newSubtotal = items.reduce((sum, item) => sum + calculateItemTotal(item), 0);
       await supabase.from('orders').update({
         subtotal: newSubtotal,
-        total: newSubtotal - selectedOrder.deposit_amount - (selectedOrder.discount || 0),
+        total: newSubtotal - selectedOrder.deposit_amount - getDiscountAmount(selectedOrder, newSubtotal),
       }).eq('id', selectedOrder.id);
       
       loadOrders();
@@ -349,7 +360,7 @@ const Orders = () => {
       const newSubtotal = items.reduce((sum, item) => sum + calculateItemTotal(item), 0);
       await supabase.from('orders').update({
         subtotal: newSubtotal,
-        total: newSubtotal - selectedOrder.deposit_amount - (selectedOrder.discount || 0),
+        total: newSubtotal - selectedOrder.deposit_amount - getDiscountAmount(selectedOrder, newSubtotal),
       }).eq('id', selectedOrder.id);
       
       loadOrders();
@@ -390,7 +401,7 @@ const Orders = () => {
       const newSubtotal = items.reduce((sum, item) => sum + calculateItemTotal(item), 0);
       await supabase.from('orders').update({
         subtotal: newSubtotal,
-        total: newSubtotal - selectedOrder.deposit_amount - (selectedOrder.discount || 0),
+        total: newSubtotal - selectedOrder.deposit_amount - getDiscountAmount(selectedOrder, newSubtotal),
       }).eq('id', selectedOrder.id);
       
       loadOrders();
@@ -421,7 +432,7 @@ const Orders = () => {
 
     // Calculate totals with description multiplier
     const calculatedSubtotal = order.items.reduce((sum, item) => sum + calculateItemTotal(item), 0);
-    const orderDiscount = order.discount || 0;
+    const orderDiscount = getDiscountAmount(order, calculatedSubtotal);
     const calculatedTotal = calculatedSubtotal - order.deposit_amount - orderDiscount;
 
     const invoiceHtml = `
@@ -494,7 +505,7 @@ const Orders = () => {
         </table>
         <div class="totals">
           <p>الإجمالي الفرعي: ${calculatedSubtotal.toFixed(2)} ج.م</p>
-          ${orderDiscount > 0 ? `<p>الخصم: -${orderDiscount.toFixed(2)} ج.م</p>` : ''}
+          ${orderDiscount > 0 ? `<p>الخصم${order.discount_type === 'percent' ? ` (${order.discount}%)` : ''}: -${orderDiscount.toFixed(2)} ج.م</p>` : ''}
           ${order.deposit_amount > 0 ? `<p>العربون (${order.deposit_method}): -${order.deposit_amount.toFixed(2)} ج.م</p>` : ''}
           <p class="total">المطلوب: ${calculatedTotal.toFixed(2)} ج.م</p>
         </div>
@@ -677,13 +688,13 @@ const Orders = () => {
               <div className="text-left space-y-1">
                 {(() => {
                   const calcSubtotal = selectedOrder.items?.reduce((sum, item) => sum + calculateItemTotal(item), 0) || 0;
-                  const calcDiscount = selectedOrder.discount || 0;
-                  const calcTotal = calcSubtotal - selectedOrder.deposit_amount - calcDiscount;
+                  const calcDiscountAmt = getDiscountAmount(selectedOrder, calcSubtotal);
+                  const calcTotal = calcSubtotal - selectedOrder.deposit_amount - calcDiscountAmt;
                   return (
                     <>
                       <p>الإجمالي الفرعي: {calcSubtotal.toFixed(2)} ج.م</p>
-                      {calcDiscount > 0 && (
-                        <p className="text-orange-600">الخصم: -{calcDiscount.toFixed(2)} ج.م</p>
+                      {calcDiscountAmt > 0 && (
+                        <p className="text-orange-600">الخصم{selectedOrder.discount_type === 'percent' ? ` (${selectedOrder.discount}%)` : ''}: -{calcDiscountAmt.toFixed(2)} ج.م</p>
                       )}
                       {selectedOrder.deposit_amount > 0 && (
                         <p className="text-secondary">العربون: -{selectedOrder.deposit_amount.toFixed(2)} ج.م</p>
@@ -949,13 +960,24 @@ const Orders = () => {
                   </div>
                   <div>
                     <label className="text-sm text-muted-foreground">الخصم</label>
-                    <Input
-                      type="number"
-                      min="0"
-                      value={selectedOrder.discount || 0}
-                      onChange={(e) => setSelectedOrder({ ...selectedOrder, discount: parseFloat(e.target.value) || 0 })}
-                      dir="ltr"
-                    />
+                    <div className="flex gap-2">
+                      <Input
+                        type="number"
+                        min="0"
+                        value={selectedOrder.discount || 0}
+                        onChange={(e) => setSelectedOrder({ ...selectedOrder, discount: parseFloat(e.target.value) || 0 })}
+                        dir="ltr"
+                        className="flex-1"
+                      />
+                      <select
+                        className="flex h-10 rounded-md border border-input bg-background px-2 py-2 text-sm ring-offset-background"
+                        value={selectedOrder.discount_type || 'amount'}
+                        onChange={(e) => setSelectedOrder({ ...selectedOrder, discount_type: e.target.value })}
+                      >
+                        <option value="amount">مبلغ</option>
+                        <option value="percent">%</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
                 <Button 
@@ -963,7 +985,7 @@ const Orders = () => {
                   className="w-full"
                   onClick={async () => {
                     const calcSubtotal = selectedOrder.items?.reduce((sum, item) => sum + calculateItemTotal(item), 0) || 0;
-                    const calcTotal = calcSubtotal - selectedOrder.deposit_amount - (selectedOrder.discount || 0);
+                    const calcTotal = calcSubtotal - selectedOrder.deposit_amount - getDiscountAmount(selectedOrder, calcSubtotal);
                     
                     const { error } = await supabase.from('orders').update({
                       customer_name: selectedOrder.customer_name,
@@ -975,6 +997,7 @@ const Orders = () => {
                       deposit_method: selectedOrder.deposit_method,
                       deposit_amount: selectedOrder.deposit_amount,
                       discount: selectedOrder.discount || 0,
+                      discount_type: selectedOrder.discount_type || 'amount',
                       total: calcTotal,
                     }).eq('id', selectedOrder.id);
 
@@ -1093,13 +1116,13 @@ const Orders = () => {
               <div className="text-left space-y-1 border-t pt-4">
                 {(() => {
                   const calcSubtotal = selectedOrder.items?.reduce((sum, item) => sum + calculateItemTotal(item), 0) || 0;
-                  const calcDiscount = selectedOrder.discount || 0;
-                  const calcTotal = calcSubtotal - selectedOrder.deposit_amount - calcDiscount;
+                  const calcDiscountAmt = getDiscountAmount(selectedOrder, calcSubtotal);
+                  const calcTotal = calcSubtotal - selectedOrder.deposit_amount - calcDiscountAmt;
                   return (
                     <>
                       <p>الإجمالي الفرعي: {calcSubtotal.toFixed(2)} ج.م</p>
-                      {calcDiscount > 0 && (
-                        <p className="text-orange-600">الخصم: -{calcDiscount.toFixed(2)} ج.م</p>
+                      {calcDiscountAmt > 0 && (
+                        <p className="text-orange-600">الخصم{selectedOrder.discount_type === 'percent' ? ` (${selectedOrder.discount}%)` : ''}: -{calcDiscountAmt.toFixed(2)} ج.م</p>
                       )}
                       {selectedOrder.deposit_amount > 0 && (
                         <p className="text-secondary">العربون: -{selectedOrder.deposit_amount.toFixed(2)} ج.م</p>
