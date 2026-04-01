@@ -997,6 +997,7 @@ const Orders = () => {
                       deposit_method: selectedOrder.deposit_method,
                       deposit_amount: selectedOrder.deposit_amount,
                       discount: selectedOrder.discount || 0,
+                      discount_type: selectedOrder.discount_type || 'amount',
                       total: calcTotal,
                     }).eq('id', selectedOrder.id);
 
