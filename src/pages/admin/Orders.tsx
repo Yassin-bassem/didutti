@@ -974,6 +974,7 @@ const Orders = () => {
                       shipping_company: selectedOrder.shipping_company,
                       deposit_method: selectedOrder.deposit_method,
                       deposit_amount: selectedOrder.deposit_amount,
+                      discount: selectedOrder.discount || 0,
                       total: calcTotal,
                     }).eq('id', selectedOrder.id);
 
