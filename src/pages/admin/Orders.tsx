@@ -421,7 +421,8 @@ const Orders = () => {
 
     // Calculate totals with description multiplier
     const calculatedSubtotal = order.items.reduce((sum, item) => sum + calculateItemTotal(item), 0);
-    const calculatedTotal = calculatedSubtotal - order.deposit_amount;
+    const orderDiscount = order.discount || 0;
+    const calculatedTotal = calculatedSubtotal - order.deposit_amount - orderDiscount;
 
     const invoiceHtml = `
       <!DOCTYPE html>
