@@ -32,6 +32,7 @@ interface Order {
   deposit_method: string | null;
   deposit_amount: number;
   discount: number;
+  discount_type: string | null;
   subtotal: number;
   total: number;
   status: string;
