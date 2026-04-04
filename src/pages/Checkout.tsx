@@ -804,7 +804,7 @@ const Checkout = () => {
                 {formData.depositMethod === 'vodafone_cash' && (
                   <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-800">
                     <p className="font-bold mb-2">رقم فودافون كاش:</p>
-                    <p className="text-2xl font-bold" dir="ltr">01001608562</p>
+                    <p className="text-2xl font-bold" dir="ltr">01098795115</p>
                   </div>
                 )}
 
