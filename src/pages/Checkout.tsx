@@ -788,14 +788,14 @@ const Checkout = () => {
                   <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg text-blue-800">
                     <p className="font-bold mb-2">اضغط الرابط لارسال نقود الى</p>
                     <a 
-                      href="https://ipn.eg/S/basom.1980/instapay/44SGmu" 
+                      href="https://ipn.eg/S/diagc/instapay/92UO1b" 
                       target="_blank" 
                       rel="noopener noreferrer"
                       className="text-blue-600 underline font-bold block mb-2"
                     >
-                      https://ipn.eg/S/basom.1980/instapay/44SGmu
+                      https://ipn.eg/S/diagc/instapay/92UO1b
                     </a>
-                    <p className="text-sm">basom.1980@instapay</p>
+                    <p className="text-sm">diagc@instapay</p>
                     <p className="text-xs text-blue-600 mt-1">Powered by InstaPay</p>
                   </div>
                 )}
@@ -804,7 +804,7 @@ const Checkout = () => {
                 {formData.depositMethod === 'vodafone_cash' && (
                   <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-800">
                     <p className="font-bold mb-2">رقم فودافون كاش:</p>
-                    <p className="text-2xl font-bold" dir="ltr">01001608562</p>
+                    <p className="text-2xl font-bold" dir="ltr">01098795115</p>
                   </div>
                 )}
 
