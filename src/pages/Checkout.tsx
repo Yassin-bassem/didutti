@@ -695,8 +695,10 @@ const Checkout = () => {
                         placeholder="ادخل رقم الهاتف كامل (01033110143)..."
                         value={customerSearch}
                         onChange={(e) => {
-                          setCustomerSearch(e.target.value);
+                          const val = e.target.value;
+                          setCustomerSearch(val);
                           setShowCustomerDropdown(true);
+                          searchCustomers(val);
                         }}
                         className="pr-10"
                         dir="ltr"
