@@ -220,6 +220,8 @@ const Checkout = () => {
   const [isOldCustomer, setIsOldCustomer] = useState(false);
   const [customerSearch, setCustomerSearch] = useState('');
   const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
+  const [dbCustomers, setDbCustomers] = useState<{ name: string; shopName: string; address: string; phone: string }[]>([]);
+  const [searchingCustomers, setSearchingCustomers] = useState(false);
   
   const [formData, setFormData] = useState({
     name: '',
@@ -234,7 +236,6 @@ const Checkout = () => {
 
   const total = subtotal - formData.depositAmount;
 
-  // Filter customers based on search
   // Normalize phone number - remove leading 0, 20, 2, country codes
   const normalizePhone = (phone: string): string => {
     let normalized = phone.replace(/\D/g, ''); // Remove non-digits
@@ -244,20 +245,58 @@ const Checkout = () => {
     return normalized;
   };
 
+  // Search customers from DB when search changes
+  const searchCustomers = async (searchTerm: string) => {
+    if (!searchTerm.trim() || normalizePhone(searchTerm).length < 4) {
+      setDbCustomers([]);
+      return;
+    }
+    
+    setSearchingCustomers(true);
+    try {
+      // Search in DB customers
+      const { data } = await supabase
+        .from('customers')
+        .select('name, shop_name, phone, address')
+        .or(`phone.ilike.%${searchTerm}%,name.ilike.%${searchTerm}%`)
+        .limit(20);
+      
+      const dbResults = (data || []).map(c => ({
+        name: c.name,
+        shopName: c.shop_name || '',
+        address: c.address || '',
+        phone: c.phone,
+      }));
+      
+      // Also search hardcoded data
+      const searchNormalized = normalizePhone(searchTerm);
+      const hardcodedResults = oldCustomersData.filter((c) => {
+        const customerPhoneNormalized = normalizePhone(c.phone);
+        return customerPhoneNormalized.includes(searchNormalized) ||
+               c.name.toLowerCase().includes(searchTerm.toLowerCase());
+      });
+      
+      // Merge results, DB first, avoid duplicates by phone
+      const seenPhones = new Set<string>();
+      const merged: typeof dbResults = [];
+      
+      for (const c of [...dbResults, ...hardcodedResults]) {
+        const normalizedPhone = normalizePhone(c.phone);
+        if (!seenPhones.has(normalizedPhone)) {
+          seenPhones.add(normalizedPhone);
+          merged.push(c);
+        }
+      }
+      
+      setDbCustomers(merged);
+    } catch (err) {
+      console.error('Error searching customers:', err);
+    }
+    setSearchingCustomers(false);
+  };
+
   // Only show customer when exact phone match is found
-  const filteredCustomers = useMemo(() => {
-    if (!customerSearch.trim()) return [];
-    const searchNormalized = normalizePhone(customerSearch);
-    
-    // Must have at least 9 digits for a valid phone search
-    if (searchNormalized.length < 9) return [];
-    
-    return oldCustomersData.filter((c) => {
-      const customerPhoneNormalized = normalizePhone(c.phone);
-      return customerPhoneNormalized === searchNormalized ||
-             c.name.toLowerCase() === customerSearch.toLowerCase();
-    });
-  }, [customerSearch]);
+  const filteredCustomers = dbCustomers;
 
   const handleOldCustomerToggle = () => {
     setIsOldCustomer(!isOldCustomer);
