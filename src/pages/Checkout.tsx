@@ -367,6 +367,16 @@ const Checkout = () => {
           .update({ is_new: false })
           .eq('id', customerId);
       } else {
+        // Check if customer exists in ANY version (by phone)
+        const { data: anyVersionCustomer } = await supabase
+          .from('customers')
+          .select('id')
+          .eq('phone', formData.phone)
+          .limit(1)
+          .maybeSingle();
+
+        const isActuallyNew = !isOldCustomer && !anyVersionCustomer;
+
         const { data: newCustomer, error: customerError } = await supabase
           .from('customers')
           .insert({
@@ -374,7 +384,7 @@ const Checkout = () => {
             shop_name: formData.shopName || null,
             phone: formData.phone,
             address: formData.address || null,
-            is_new: !isOldCustomer,
+            is_new: isActuallyNew,
             version_id: versionId,
           })
           .select('id')
