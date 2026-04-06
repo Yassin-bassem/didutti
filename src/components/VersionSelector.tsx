@@ -183,11 +183,24 @@ const VersionSelector = () => {
                   onChange={(e) => setNewVersionName(e.target.value)}
                 />
               </div>
+              {activeVersion && (
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="mergeProducts"
+                    checked={mergeProducts}
+                    onCheckedChange={(checked) => setMergeProducts(checked === true)}
+                  />
+                  <label htmlFor="mergeProducts" className="text-sm cursor-pointer flex items-center gap-1">
+                    <Copy className="h-3.5 w-3.5" />
+                    نسخ جميع المنتجات من النسخة الحالية ({activeVersion.name})
+                  </label>
+                </div>
+              )}
               <p className="text-sm text-muted-foreground">
-                سيتم إنشاء نسخة جديدة فارغة وسيبدأ ترقيم الطلبات من 1
+                سيتم إنشاء نسخة جديدة وسيبدأ ترقيم الطلبات من 1
               </p>
-              <Button onClick={handleCreateVersion} className="w-full">
-                إنشاء النسخة
+              <Button onClick={handleCreateVersion} className="w-full" disabled={merging}>
+                {merging ? 'جاري الإنشاء...' : 'إنشاء النسخة'}
               </Button>
             </div>
           </DialogContent>
