@@ -21,8 +21,64 @@ const VersionSelector = () => {
   const [renameValue, setRenameValue] = useState('');
 
   const handleCreateVersion = async () => {
+    if (!newVersionName.trim()) {
+      toast.error('يرجى إدخال اسم النسخة');
+      return;
+    }
+    
+    setMerging(true);
+    
+    // Remember the current active version before creating the new one
+    const previousActiveVersion = activeVersion;
+    
     await createVersion(newVersionName);
+    
+    // If merge is checked and there was a previous version, copy products
+    if (mergeProducts && previousActiveVersion) {
+      try {
+        // Load products from previous version
+        const { data: oldProducts, error: fetchError } = await supabase
+          .from('products')
+          .select('code, name, description, price, image_url, stock_quantity, low_stock_threshold')
+          .eq('version_id', previousActiveVersion.id);
+
+        if (fetchError) throw fetchError;
+
+        if (oldProducts && oldProducts.length > 0) {
+          // Get the newly created version (it's now active)
+          const { data: newActiveVersion } = await supabase
+            .from('versions')
+            .select('id')
+            .eq('is_active', true)
+            .single();
+
+          if (newActiveVersion) {
+            const newProducts = oldProducts.map(p => ({
+              ...p,
+              version_id: newActiveVersion.id,
+            }));
+
+            // Insert in batches of 100
+            for (let i = 0; i < newProducts.length; i += 100) {
+              const batch = newProducts.slice(i, i + 100);
+              const { error: insertError } = await supabase
+                .from('products')
+                .insert(batch);
+              if (insertError) throw insertError;
+            }
+
+            toast.success(`تم نسخ ${oldProducts.length} منتج من النسخة السابقة`);
+          }
+        }
+      } catch (err) {
+        console.error('Error merging products:', err);
+        toast.error('فشل في نسخ المنتجات');
+      }
+    }
+    
+    setMerging(false);
     setNewVersionName('');
+    setMergeProducts(false);
     setDialogOpen(false);
   };
 
