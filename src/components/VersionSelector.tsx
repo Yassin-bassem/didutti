@@ -1,10 +1,13 @@
 import { useState } from 'react';
-import { Layers, Plus, Check, Pencil, Trash2 } from 'lucide-react';
+import { Layers, Plus, Check, Pencil, Trash2, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useVersion } from '@/contexts/VersionContext';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const VersionSelector = () => {
   const { versions, activeVersion, setActiveVersion, createVersion, renameVersion, deleteVersion, loading } = useVersion();
