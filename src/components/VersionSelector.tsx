@@ -1,14 +1,19 @@
 import { useState } from 'react';
-import { Layers, Plus, Check, Pencil, Trash2 } from 'lucide-react';
+import { Layers, Plus, Check, Pencil, Trash2, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useVersion } from '@/contexts/VersionContext';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const VersionSelector = () => {
   const { versions, activeVersion, setActiveVersion, createVersion, renameVersion, deleteVersion, loading } = useVersion();
   const [newVersionName, setNewVersionName] = useState('');
+  const [mergeProducts, setMergeProducts] = useState(false);
+  const [merging, setMerging] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -16,8 +21,64 @@ const VersionSelector = () => {
   const [renameValue, setRenameValue] = useState('');
 
   const handleCreateVersion = async () => {
+    if (!newVersionName.trim()) {
+      toast.error('يرجى إدخال اسم النسخة');
+      return;
+    }
+    
+    setMerging(true);
+    
+    // Remember the current active version before creating the new one
+    const previousActiveVersion = activeVersion;
+    
     await createVersion(newVersionName);
+    
+    // If merge is checked and there was a previous version, copy products
+    if (mergeProducts && previousActiveVersion) {
+      try {
+        // Load products from previous version
+        const { data: oldProducts, error: fetchError } = await supabase
+          .from('products')
+          .select('code, name, description, price, image_url, stock_quantity, low_stock_threshold')
+          .eq('version_id', previousActiveVersion.id);
+
+        if (fetchError) throw fetchError;
+
+        if (oldProducts && oldProducts.length > 0) {
+          // Get the newly created version (it's now active)
+          const { data: newActiveVersion } = await supabase
+            .from('versions')
+            .select('id')
+            .eq('is_active', true)
+            .single();
+
+          if (newActiveVersion) {
+            const newProducts = oldProducts.map(p => ({
+              ...p,
+              version_id: newActiveVersion.id,
+            }));
+
+            // Insert in batches of 100
+            for (let i = 0; i < newProducts.length; i += 100) {
+              const batch = newProducts.slice(i, i + 100);
+              const { error: insertError } = await supabase
+                .from('products')
+                .insert(batch);
+              if (insertError) throw insertError;
+            }
+
+            toast.success(`تم نسخ ${oldProducts.length} منتج من النسخة السابقة`);
+          }
+        }
+      } catch (err) {
+        console.error('Error merging products:', err);
+        toast.error('فشل في نسخ المنتجات');
+      }
+    }
+    
+    setMerging(false);
     setNewVersionName('');
+    setMergeProducts(false);
     setDialogOpen(false);
   };
 
@@ -122,11 +183,24 @@ const VersionSelector = () => {
                   onChange={(e) => setNewVersionName(e.target.value)}
                 />
               </div>
+              {activeVersion && (
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="mergeProducts"
+                    checked={mergeProducts}
+                    onCheckedChange={(checked) => setMergeProducts(checked === true)}
+                  />
+                  <label htmlFor="mergeProducts" className="text-sm cursor-pointer flex items-center gap-1">
+                    <Copy className="h-3.5 w-3.5" />
+                    نسخ جميع المنتجات من النسخة الحالية ({activeVersion.name})
+                  </label>
+                </div>
+              )}
               <p className="text-sm text-muted-foreground">
-                سيتم إنشاء نسخة جديدة فارغة وسيبدأ ترقيم الطلبات من 1
+                سيتم إنشاء نسخة جديدة وسيبدأ ترقيم الطلبات من 1
               </p>
-              <Button onClick={handleCreateVersion} className="w-full">
-                إنشاء النسخة
+              <Button onClick={handleCreateVersion} className="w-full" disabled={merging}>
+                {merging ? 'جاري الإنشاء...' : 'إنشاء النسخة'}
               </Button>
             </div>
           </DialogContent>
