@@ -247,7 +247,7 @@ const Checkout = () => {
 
   // Search customers from DB when search changes
   const searchCustomers = async (searchTerm: string) => {
-    if (!searchTerm.trim() || normalizePhone(searchTerm).length < 4) {
+    if (!searchTerm.trim() || searchTerm.replace(/\D/g, '').length < 3) {
       setDbCustomers([]);
       return;
     }
