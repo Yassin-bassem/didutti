@@ -254,11 +254,13 @@ const Checkout = () => {
     
     setSearchingCustomers(true);
     try {
-      // Search in DB customers
+      // Search in DB customers - search with raw term and normalized
+      const searchDigits = searchTerm.replace(/\D/g, '');
+      const normalizedSearch = normalizePhone(searchTerm);
       const { data } = await supabase
         .from('customers')
         .select('name, shop_name, phone, address')
-        .or(`phone.ilike.%${searchTerm}%,name.ilike.%${searchTerm}%`)
+        .or(`phone.ilike.%${searchDigits}%,phone.ilike.%${normalizedSearch}%,name.ilike.%${searchTerm}%`)
         .limit(20);
       
       const dbResults = (data || []).map(c => ({
