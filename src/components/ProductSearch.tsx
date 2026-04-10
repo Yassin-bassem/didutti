@@ -32,11 +32,23 @@ const ProductSearch = () => {
 
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      // Get active version first
+      const { data: activeVersion } = await supabase
+        .from('versions')
+        .select('id')
+        .eq('is_active', true)
+        .maybeSingle();
+
+      let query = supabase
         .from('products')
         .select('*')
-        .eq('code', searchCode.trim())
-        .maybeSingle();
+        .eq('code', searchCode.trim());
+
+      if (activeVersion) {
+        query = query.eq('version_id', activeVersion.id);
+      }
+
+      const { data, error } = await query.maybeSingle();
 
       if (error) throw error;
 

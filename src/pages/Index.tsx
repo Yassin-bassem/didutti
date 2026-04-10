@@ -17,11 +17,23 @@ const Index = () => {
 
   const handleQRScan = useCallback(async (code: string) => {
     try {
-      const { data, error } = await supabase
+      // Get active version first
+      const { data: activeVersion } = await supabase
+        .from('versions')
+        .select('id')
+        .eq('is_active', true)
+        .maybeSingle();
+
+      let query = supabase
         .from('products')
         .select('*')
-        .eq('code', code)
-        .maybeSingle();
+        .eq('code', code);
+
+      if (activeVersion) {
+        query = query.eq('version_id', activeVersion.id);
+      }
+
+      const { data, error } = await query.maybeSingle();
 
       if (error) throw error;
 
