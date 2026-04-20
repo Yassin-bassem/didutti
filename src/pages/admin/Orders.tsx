@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import logoImage from '@/assets/bubbles-logo.jpeg';
+import logoImage from '@/assets/scream-logo.jpeg';
 import { useVersion } from '@/contexts/VersionContext';
 
 interface OrderItem {
@@ -454,14 +454,13 @@ const Orders = () => {
           th { background: #5b2d8e; color: white; }
           .totals { text-align: left; }
           .totals p { margin: 5px 0; }
-          .totals .total { font-size: 1.2em; font-weight: bold; color: #5b2d8e; }
+          .totals .total { font-size: 1.2em; font-weight: bold; color: #1e2a5e; }
         </style>
       </head>
       <body>
         <div class="header">
-          ${logoBase64 ? `<img src="${logoBase64}" alt="Bubbles Logo" />` : ''}
-          <h1>Bubbles</h1>
-          <p>Kids Wear</p>
+          ${logoBase64 ? `<img src="${logoBase64}" alt="Scream Logo" />` : ''}
+          <h1>Scream</h1>
           <h2>فاتورة رقم ${order.order_number}</h2>
         </div>
         <div class="info">

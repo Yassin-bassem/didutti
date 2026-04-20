@@ -11,7 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import Header from '@/components/Header';
 import ProductImage from '@/components/ProductImage';
-import logoImage from '@/assets/bubbles-logo.jpeg';
+import logoImage from '@/assets/scream-logo.jpeg';
 
 // Old customers data - format: name | shopName | address | phone
 const oldCustomersData = [
@@ -532,7 +532,7 @@ const Checkout = () => {
   const generateWhatsAppInvoice = () => {
     if (!orderNumber || !orderDetails) return '';
     
-    let invoiceText = `🧸 *Bubbles - فاتورة رقم ${orderNumber}*\n\n`;
+    let invoiceText = `🧸 *Scream - فاتورة رقم ${orderNumber}*\n\n`;
     invoiceText += `👤 *العميل:* ${orderDetails.customerName}\n`;
     if (orderDetails.shopName) invoiceText += `🏪 *المحل:* ${orderDetails.shopName}\n`;
     invoiceText += `📞 *الهاتف:* ${orderDetails.phone}\n`;
@@ -560,7 +560,7 @@ const Checkout = () => {
       invoiceText += `💵 *العربون (${methodLabel}):* -${orderDetails.depositAmount.toFixed(2)} ج.م\n`;
     }
     invoiceText += `✅ *المطلوب:* ${orderDetails.total.toFixed(2)} ج.م\n\n`;
-    invoiceText += `شكراً لتعاملكم مع Bubbles 🎀`;
+    invoiceText += `شكراً لتعاملكم مع Scream 🎀`;
     
     return invoiceText;
   };
