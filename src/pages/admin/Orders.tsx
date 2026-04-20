@@ -445,13 +445,13 @@ const Orders = () => {
           body { font-family: 'Cairo', Arial, sans-serif; padding: 20px; direction: rtl; }
           .header { text-align: center; margin-bottom: 30px; }
           .header img { width: 150px; height: auto; object-fit: contain; margin-bottom: 10px; }
-          .header h1 { color: #5b2d8e; margin: 0; }
+          .header h1 { color: #1e2a5e; margin: 0; }
           .header p { color: #7c4daf; }
           .info { margin-bottom: 20px; }
           .info p { margin: 5px 0; }
           table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
           th, td { border: 1px solid #ddd; padding: 10px; text-align: right; }
-          th { background: #5b2d8e; color: white; }
+          th { background: #1e2a5e; color: white; }
           .totals { text-align: left; }
           .totals p { margin: 5px 0; }
           .totals .total { font-size: 1.2em; font-weight: bold; color: #1e2a5e; }
