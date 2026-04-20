@@ -718,7 +718,16 @@ const Checkout = () => {
                     </div>
                     {showCustomerDropdown && filteredCustomers.length > 0 && (
                       <div className="absolute z-50 w-full mt-1 max-h-60 overflow-y-auto bg-background border rounded-lg shadow-lg">
-                        {filteredCustomers.map((customer, index) => (
+                        {filteredCustomers.filter((customer) => {
+                          // Only show exact phone match when full number is entered
+                          const searchDigits = customerSearch.replace(/\D/g, '');
+                          const customerDigits = customer.phone.replace(/\D/g, '');
+                          // Normalize both to compare (remove leading zeros/country codes)
+                          const normalizedSearch = searchDigits.startsWith('0') ? searchDigits.slice(1) : searchDigits.startsWith('20') ? searchDigits.slice(2) : searchDigits;
+                          const normalizedCustomer = customerDigits.startsWith('0') ? customerDigits.slice(1) : customerDigits.startsWith('20') ? customerDigits.slice(2) : customerDigits;
+                          // Require at least 10 digits in search and exact match
+                          return normalizedSearch.length >= 10 && normalizedCustomer === normalizedSearch;
+                        }).map((customer, index) => (
                           <button
                             key={index}
                             type="button"
