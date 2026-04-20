@@ -114,9 +114,9 @@ export default {
         wiggle: "wiggle 0.5s ease-in-out",
       },
       boxShadow: {
-        baby: "0 8px 24px -4px hsl(270 50% 35% / 0.2)",
-        "baby-lg": "0 16px 48px -8px hsl(270 50% 35% / 0.25)",
-        pink: "0 8px 24px -4px hsl(270 40% 55% / 0.3)",
+        baby: "0 8px 24px -4px hsl(225 55% 22% / 0.2)",
+        "baby-lg": "0 16px 48px -8px hsl(225 55% 22% / 0.25)",
+        pink: "0 8px 24px -4px hsl(0 75% 50% / 0.3)",
       },
     },
   },

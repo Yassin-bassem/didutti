@@ -6,53 +6,53 @@
 
 @layer base {
   :root {
-    /* Bubbles Brand Colors - Purple & White Theme */
-    --background: 270 20% 98%;
-    --foreground: 270 25% 15%;
+    /* Scream Brand Colors - Navy & Red Theme */
+    --background: 0 0% 100%;
+    --foreground: 225 50% 12%;
 
     --card: 0 0% 100%;
-    --card-foreground: 270 25% 15%;
+    --card-foreground: 225 50% 12%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 270 25% 15%;
+    --popover-foreground: 225 50% 12%;
 
-    /* Primary - Deep Purple */
-    --primary: 270 50% 35%;
+    /* Primary - Deep Navy */
+    --primary: 225 55% 22%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary - Lighter Purple */
-    --secondary: 270 40% 55%;
+    /* Secondary - Scream Red */
+    --secondary: 0 75% 50%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 270 10% 92%;
-    --muted-foreground: 270 15% 45%;
+    --muted: 225 15% 95%;
+    --muted-foreground: 225 15% 40%;
 
-    /* Accent - Soft Lavender */
-    --accent: 270 40% 92%;
-    --accent-foreground: 270 50% 35%;
+    /* Accent - Soft Red Tint */
+    --accent: 0 70% 95%;
+    --accent-foreground: 0 75% 45%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 75% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 270 15% 88%;
-    --input: 270 15% 88%;
-    --ring: 270 50% 35%;
+    --border: 225 20% 88%;
+    --input: 225 20% 88%;
+    --ring: 225 55% 22%;
 
     --radius: 1rem;
 
-    /* Custom Bubbles Colors */
-    --baby-blue: 270 50% 35%;
-    --baby-blue-light: 270 40% 96%;
-    --baby-pink: 270 40% 55%;
-    --baby-pink-light: 270 30% 95%;
-    --baby-gradient: linear-gradient(135deg, hsl(270, 50%, 35%) 0%, hsl(270, 40%, 55%) 100%);
-    --baby-gradient-soft: linear-gradient(135deg, hsl(270, 40%, 96%) 0%, hsl(270, 30%, 95%) 100%);
+    /* Custom Scream Colors */
+    --baby-blue: 225 55% 22%;
+    --baby-blue-light: 225 40% 96%;
+    --baby-pink: 0 75% 50%;
+    --baby-pink-light: 0 70% 96%;
+    --baby-gradient: linear-gradient(135deg, hsl(225, 55%, 22%) 0%, hsl(0, 75%, 50%) 100%);
+    --baby-gradient-soft: linear-gradient(135deg, hsl(225, 40%, 96%) 0%, hsl(0, 70%, 96%) 100%);
 
     /* Shadows */
-    --shadow-sm: 0 2px 8px -2px hsl(270 50% 35% / 0.15);
-    --shadow-md: 0 8px 24px -4px hsl(270 50% 35% / 0.2);
-    --shadow-lg: 0 16px 48px -8px hsl(270 50% 35% / 0.25);
-    --shadow-pink: 0 8px 24px -4px hsl(270 40% 55% / 0.3);
+    --shadow-sm: 0 2px 8px -2px hsl(225 55% 22% / 0.15);
+    --shadow-md: 0 8px 24px -4px hsl(225 55% 22% / 0.2);
+    --shadow-lg: 0 16px 48px -8px hsl(225 55% 22% / 0.25);
+    --shadow-pink: 0 8px 24px -4px hsl(0 75% 50% / 0.3);
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -65,33 +65,33 @@
   }
 
   .dark {
-    --background: 270 25% 8%;
-    --foreground: 270 20% 95%;
+    --background: 225 40% 8%;
+    --foreground: 225 20% 95%;
 
-    --card: 270 25% 12%;
-    --card-foreground: 270 20% 95%;
+    --card: 225 40% 12%;
+    --card-foreground: 225 20% 95%;
 
-    --popover: 270 25% 12%;
-    --popover-foreground: 270 20% 95%;
+    --popover: 225 40% 12%;
+    --popover-foreground: 225 20% 95%;
 
-    --primary: 270 50% 55%;
-    --primary-foreground: 270 25% 8%;
+    --primary: 225 55% 50%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 270 40% 45%;
+    --secondary: 0 75% 55%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 270 25% 18%;
-    --muted-foreground: 270 15% 60%;
+    --muted: 225 25% 18%;
+    --muted-foreground: 225 15% 65%;
 
-    --accent: 270 40% 25%;
-    --accent-foreground: 270 40% 85%;
+    --accent: 0 50% 25%;
+    --accent-foreground: 0 70% 90%;
 
-    --destructive: 0 62% 45%;
+    --destructive: 0 70% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 270 25% 20%;
-    --input: 270 25% 20%;
-    --ring: 270 50% 55%;
+    --border: 225 25% 20%;
+    --input: 225 25% 20%;
+    --ring: 225 55% 50%;
 
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;

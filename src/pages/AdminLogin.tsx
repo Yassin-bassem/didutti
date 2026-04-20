@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import bubblesLogo from '@/assets/bubbles-logo.jpeg';
+import screamLogo from '@/assets/scream-logo.jpeg';
 
 const ADMIN_PASSWORD = '2580';
 
@@ -60,9 +60,9 @@ const AdminLogin = () => {
       <Card className="w-full max-w-md border-2 border-primary/20 shadow-baby-lg">
         <CardHeader className="text-center space-y-4">
           <img
-            src={bubblesLogo}
-            alt="Bubbles"
-            className="w-24 h-24 mx-auto rounded-full shadow-baby float-animation"
+            src={screamLogo}
+            alt="Scream"
+            className="w-24 h-24 mx-auto rounded-full shadow-baby float-animation object-contain bg-white p-2"
           />
           <CardTitle className="text-2xl gradient-text">
             {loginMode === 'admin' ? 'لوحة التحكم' : 'تسجيل دخول الموظفين'}
