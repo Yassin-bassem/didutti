@@ -182,6 +182,33 @@ const StaffManagement = () => {
                     </Button>
                   </div>
                 </div>
+                {/* Permissions editor */}
+                <div className="mt-4 pt-4 border-t border-border">
+                  <p className="text-sm font-medium mb-2 text-muted-foreground">الصلاحيات في لوحة التحكم:</p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+                    {ALL_PERMISSIONS.map((perm) => {
+                      const enabled = (member.permissions || []).includes(perm);
+                      return (
+                        <label
+                          key={perm}
+                          className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer text-sm ${
+                            enabled
+                              ? 'bg-primary/10 border-primary/40'
+                              : 'bg-muted/40 border-border hover:bg-muted'
+                          }`}
+                        >
+                          <Checkbox
+                            checked={enabled}
+                            onCheckedChange={() =>
+                              togglePermission(member.id, perm, member.permissions || [])
+                            }
+                          />
+                          <span>{PERMISSION_LABELS[perm]}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
               </CardContent>
             </Card>
           ))}
