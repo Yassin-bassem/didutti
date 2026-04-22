@@ -6,6 +6,8 @@ import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useVersion } from '@/contexts/VersionContext';
 import { toast } from 'sonner';
+import { isAdmin } from '@/lib/permissions';
+import { Navigate } from 'react-router-dom';
 
 interface Stats {
   totalProducts: number;
@@ -29,6 +31,7 @@ interface StockAlert {
 
 const Stats = () => {
   const { activeVersion } = useVersion();
+  const admin = isAdmin();
   const [stats, setStats] = useState<Stats>({
     totalProducts: 0,
     totalOrders: 0,
@@ -41,10 +44,10 @@ const Stats = () => {
   const [acknowledgedProductIds, setAcknowledgedProductIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    if (activeVersion) {
+    if (activeVersion && admin) {
       loadStats();
     }
-  }, [activeVersion]);
+  }, [activeVersion, admin]);
 
   const loadStats = async () => {
     if (!activeVersion) return;
@@ -124,6 +127,11 @@ const Stats = () => {
 
   if (!activeVersion) {
     return <div className="text-center py-12 text-muted-foreground">جاري التحميل...</div>;
+  }
+
+  if (!admin) {
+    // Staff should not see total sales / revenue stats
+    return <Navigate to="/" replace />;
   }
 
   return (
