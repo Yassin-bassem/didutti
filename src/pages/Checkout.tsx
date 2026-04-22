@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 import Header from '@/components/Header';
 import ProductImage from '@/components/ProductImage';
 import logoImage from '@/assets/scream-logo.jpeg';
+import { useAppSettings } from '@/hooks/useAppSettings';
 
 // Old customers data - format: name | shopName | address | phone
 const oldCustomersData = [
@@ -203,6 +204,7 @@ const depositMethods = [
 const Checkout = () => {
   const navigate = useNavigate();
   const { items, subtotal, clearCart, extraInfo } = useCart();
+  const { settings } = useAppSettings();
   const [loading, setLoading] = useState(false);
   const [orderNumber, setOrderNumber] = useState<number | null>(null);
   const [orderDetails, setOrderDetails] = useState<{
@@ -850,14 +852,16 @@ const Checkout = () => {
                   <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg text-blue-800">
                     <p className="font-bold mb-2">اضغط الرابط لارسال نقود الى</p>
                     <a 
-                      href="https://ipn.eg/S/diagc/instapay/92UO1b" 
+                      href={settings.instapay_link}
                       target="_blank" 
                       rel="noopener noreferrer"
                       className="text-blue-600 underline font-bold block mb-2"
                     >
-                      https://ipn.eg/S/diagc/instapay/92UO1b
+                      {settings.instapay_link}
                     </a>
-                    <p className="text-sm">diagc@instapay</p>
+                    {settings.instapay_label && (
+                      <p className="text-sm">{settings.instapay_label}</p>
+                    )}
                     <p className="text-xs text-blue-600 mt-1">Powered by InstaPay</p>
                   </div>
                 )}
@@ -866,7 +870,7 @@ const Checkout = () => {
                 {formData.depositMethod === 'vodafone_cash' && (
                   <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-800">
                     <p className="font-bold mb-2">رقم فودافون كاش:</p>
-                    <p className="text-2xl font-bold" dir="ltr">01098795115</p>
+                    <p className="text-2xl font-bold" dir="ltr">{settings.vodafone_number}</p>
                   </div>
                 )}
 

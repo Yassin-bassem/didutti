@@ -246,6 +246,35 @@ const StaffManagement = () => {
                 className="text-center text-2xl tracking-widest"
               />
             </div>
+            <div>
+              <Label className="mb-2 block">الصلاحيات (الأقسام التي يستطيع الوصول إليها)</Label>
+              <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto p-2 border rounded-lg">
+                {ALL_PERMISSIONS.map((perm) => {
+                  const checked = newPermissions.includes(perm);
+                  return (
+                    <label
+                      key={perm}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer text-sm ${
+                        checked ? 'bg-primary/10 border-primary/40' : 'bg-muted/40 border-border'
+                      }`}
+                    >
+                      <Checkbox
+                        checked={checked}
+                        onCheckedChange={(v) => {
+                          setNewPermissions((prev) =>
+                            v ? [...prev, perm] : prev.filter((p) => p !== perm),
+                          );
+                        }}
+                      />
+                      <span>{PERMISSION_LABELS[perm]}</span>
+                    </label>
+                  );
+                })}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                عند تسجيل الدخول، ستفتح لوحة التحكم على الأقسام المختارة فقط.
+              </p>
+            </div>
             <Button onClick={handleCreate} className="w-full" disabled={!newName.trim() || newPassword.length !== 4}>
               إنشاء الحساب
             </Button>
