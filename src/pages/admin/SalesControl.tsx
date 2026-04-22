@@ -87,7 +87,7 @@ const SalesControl = () => {
               </div>
             </label>
 
-            <label className={`flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${mode === 'allow_negative' ? 'border-amber-500 bg-amber-50' : 'border-border'}`}>
+            <label className={`flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${mode === 'allow_negative' ? 'border-amber-500 bg-amber-500/10' : 'border-border'}`}>
               <RadioGroupItem value="allow_negative" id="allow_negative" className="mt-1" />
               <div className="flex-1">
                 <div className="flex items-center gap-2 font-bold">

@@ -16,6 +16,8 @@ const Settings = () => {
     instapay_link: '',
     instapay_label: '',
     vodafone_number: '',
+    sales_mode: 'unlimited',
+    sales_negative_limit: '20',
   });
 
   useEffect(() => {
