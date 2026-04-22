@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useCart } from '@/contexts/CartContext';
 import { toast } from 'sonner';
+import { checkStockForAdd } from '@/lib/stockCheck';
 import Header from '@/components/Header';
 import QRScanner from '@/components/QRScanner';
 import CartPreview from '@/components/CartPreview';
@@ -13,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { MessageCircle, FileEdit } from 'lucide-react';
 
 const Index = () => {
-  const { addItem, extraInfo, setExtraInfo } = useCart();
+  const { addItem, extraInfo, setExtraInfo, items } = useCart();
 
   const handleQRScan = useCallback(async (code: string) => {
     try {
@@ -38,6 +39,11 @@ const Index = () => {
       if (error) throw error;
 
       if (data) {
+        const check = await checkStockForAdd(data.id, data.description || '', 1, items);
+        if (!check.allowed) {
+          toast.error(check.reason || 'لا يمكن إضافة هذا المنتج');
+          return;
+        }
         addItem({
           productId: data.id,
           code: data.code,
@@ -54,7 +60,7 @@ const Index = () => {
       console.error('QR scan error:', err);
       toast.error('حدث خطأ في قراءة المنتج');
     }
-  }, [addItem]);
+  }, [addItem, items]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-baby-blue-light via-background to-baby-pink-light">

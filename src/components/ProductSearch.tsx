@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useCart } from '@/contexts/CartContext';
 import { toast } from 'sonner';
 import ProductImage from '@/components/ProductImage';
+import { checkStockForAdd } from '@/lib/stockCheck';
 
 interface Product {
   id: string;
@@ -22,7 +23,7 @@ const ProductSearch = () => {
   const [searchCode, setSearchCode] = useState('');
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(false);
-  const { addItem } = useCart();
+  const { addItem, items } = useCart();
 
   const handleSearch = async () => {
     if (!searchCode.trim()) {
@@ -66,9 +67,15 @@ const ProductSearch = () => {
     }
   };
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (!product) return;
-    
+
+    const check = await checkStockForAdd(product.id, product.description || '', 1, items);
+    if (!check.allowed) {
+      toast.error(check.reason || 'لا يمكن إضافة هذا المنتج');
+      return;
+    }
+
     addItem({
       productId: product.id,
       code: product.code,
