@@ -9,6 +9,8 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { ALL_PERMISSIONS, PERMISSION_LABELS, PermissionKey } from '@/lib/permissions';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface StaffMember {
   id: string;
@@ -16,6 +18,7 @@ interface StaffMember {
   password: string;
   is_active: boolean;
   created_at: string;
+  permissions: string[];
 }
 
 const StaffManagement = () => {
@@ -24,6 +27,7 @@ const StaffManagement = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [newName, setNewName] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [newPermissions, setNewPermissions] = useState<PermissionKey[]>([]);
   const [showPasswords, setShowPasswords] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
@@ -58,6 +62,7 @@ const StaffManagement = () => {
     const { error } = await supabase.from('staff_members').insert({
       name: newName.trim(),
       password: newPassword,
+      permissions: newPermissions,
     });
 
     if (error) {
@@ -67,6 +72,22 @@ const StaffManagement = () => {
       setDialogOpen(false);
       setNewName('');
       setNewPassword('');
+      setNewPermissions([]);
+      loadStaff();
+    }
+  };
+
+  const togglePermission = async (id: string, perm: PermissionKey, current: string[]) => {
+    const next = current.includes(perm)
+      ? current.filter((p) => p !== perm)
+      : [...current, perm];
+    const { error } = await supabase
+      .from('staff_members')
+      .update({ permissions: next })
+      .eq('id', id);
+    if (error) {
+      toast.error('فشل في تحديث الصلاحيات');
+    } else {
       loadStaff();
     }
   };
