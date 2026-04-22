@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_settings: {
+        Row: {
+          id: string
+          key: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          id?: string
+          key: string
+          updated_at?: string
+          value: string
+        }
+        Update: {
+          id?: string
+          key?: string
+          updated_at?: string
+          value?: string
+        }
+        Relationships: []
+      }
       customers: {
         Row: {
           address: string | null
@@ -349,6 +370,7 @@ export type Database = {
           is_active: boolean
           name: string
           password: string
+          permissions: string[]
         }
         Insert: {
           created_at?: string
@@ -356,6 +378,7 @@ export type Database = {
           is_active?: boolean
           name: string
           password: string
+          permissions?: string[]
         }
         Update: {
           created_at?: string
@@ -363,6 +386,7 @@ export type Database = {
           is_active?: boolean
           name?: string
           password?: string
+          permissions?: string[]
         }
         Relationships: []
       }

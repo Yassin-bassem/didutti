@@ -9,6 +9,8 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { ALL_PERMISSIONS, PERMISSION_LABELS, PermissionKey } from '@/lib/permissions';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface StaffMember {
   id: string;
@@ -16,6 +18,7 @@ interface StaffMember {
   password: string;
   is_active: boolean;
   created_at: string;
+  permissions: string[];
 }
 
 const StaffManagement = () => {
@@ -24,6 +27,7 @@ const StaffManagement = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [newName, setNewName] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [newPermissions, setNewPermissions] = useState<PermissionKey[]>([]);
   const [showPasswords, setShowPasswords] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
@@ -58,6 +62,7 @@ const StaffManagement = () => {
     const { error } = await supabase.from('staff_members').insert({
       name: newName.trim(),
       password: newPassword,
+      permissions: newPermissions,
     });
 
     if (error) {
@@ -67,6 +72,22 @@ const StaffManagement = () => {
       setDialogOpen(false);
       setNewName('');
       setNewPassword('');
+      setNewPermissions([]);
+      loadStaff();
+    }
+  };
+
+  const togglePermission = async (id: string, perm: PermissionKey, current: string[]) => {
+    const next = current.includes(perm)
+      ? current.filter((p) => p !== perm)
+      : [...current, perm];
+    const { error } = await supabase
+      .from('staff_members')
+      .update({ permissions: next })
+      .eq('id', id);
+    if (error) {
+      toast.error('فشل في تحديث الصلاحيات');
+    } else {
       loadStaff();
     }
   };
@@ -161,6 +182,33 @@ const StaffManagement = () => {
                     </Button>
                   </div>
                 </div>
+                {/* Permissions editor */}
+                <div className="mt-4 pt-4 border-t border-border">
+                  <p className="text-sm font-medium mb-2 text-muted-foreground">الصلاحيات في لوحة التحكم:</p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+                    {ALL_PERMISSIONS.map((perm) => {
+                      const enabled = (member.permissions || []).includes(perm);
+                      return (
+                        <label
+                          key={perm}
+                          className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer text-sm ${
+                            enabled
+                              ? 'bg-primary/10 border-primary/40'
+                              : 'bg-muted/40 border-border hover:bg-muted'
+                          }`}
+                        >
+                          <Checkbox
+                            checked={enabled}
+                            onCheckedChange={() =>
+                              togglePermission(member.id, perm, member.permissions || [])
+                            }
+                          />
+                          <span>{PERMISSION_LABELS[perm]}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
               </CardContent>
             </Card>
           ))}
@@ -197,6 +245,35 @@ const StaffManagement = () => {
                 dir="ltr"
                 className="text-center text-2xl tracking-widest"
               />
+            </div>
+            <div>
+              <Label className="mb-2 block">الصلاحيات (الأقسام التي يستطيع الوصول إليها)</Label>
+              <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto p-2 border rounded-lg">
+                {ALL_PERMISSIONS.map((perm) => {
+                  const checked = newPermissions.includes(perm);
+                  return (
+                    <label
+                      key={perm}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer text-sm ${
+                        checked ? 'bg-primary/10 border-primary/40' : 'bg-muted/40 border-border'
+                      }`}
+                    >
+                      <Checkbox
+                        checked={checked}
+                        onCheckedChange={(v) => {
+                          setNewPermissions((prev) =>
+                            v ? [...prev, perm] : prev.filter((p) => p !== perm),
+                          );
+                        }}
+                      />
+                      <span>{PERMISSION_LABELS[perm]}</span>
+                    </label>
+                  );
+                })}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                عند تسجيل الدخول، ستفتح لوحة التحكم على الأقسام المختارة فقط.
+              </p>
             </div>
             <Button onClick={handleCreate} className="w-full" disabled={!newName.trim() || newPassword.length !== 4}>
               إنشاء الحساب
