@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link, Outlet, useLocation, Navigate } from 'react-router-dom';
-import { Package, ShoppingCart, Users, BarChart3, LogOut, Wallet, SearchCode, FileText, ImagePlus, Menu, X, Bell, UserCog, Settings as SettingsIcon, TrendingDown } from 'lucide-react';
+import { Package, ShoppingCart, Users, BarChart3, LogOut, Wallet, SearchCode, FileText, Menu, X, Bell, UserCog, Settings as SettingsIcon, TrendingDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import screamLogo from '@/assets/scream-logo.jpeg';
 import { VersionProvider } from '@/contexts/VersionContext';
@@ -22,7 +22,6 @@ const navItems: NavItem[] = [
   { path: '/admin/dashboard/deposits', label: 'العربون', icon: Wallet, permission: 'deposits' },
   { path: '/admin/dashboard/search-by-code', label: 'البحث بالكود', icon: SearchCode, permission: 'search-by-code' },
   { path: '/admin/dashboard/customer-extra-info', label: 'معلومات إضافية', icon: FileText, permission: 'customer-extra-info' },
-  { path: '/admin/dashboard/product-images', label: 'صور المنتجات', icon: ImagePlus, permission: 'product-images' },
   { path: '/admin/dashboard/stock-alerts', label: 'تنبيهات المخزون', icon: Bell, permission: 'stock-alerts' },
   { path: '/admin/dashboard/staff', label: 'الموظفين', icon: UserCog, permission: 'admin' },
   { path: '/admin/dashboard/settings', label: 'الإعدادات', icon: SettingsIcon, permission: 'admin' },
