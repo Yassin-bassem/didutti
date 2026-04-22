@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link, Outlet, useLocation, Navigate } from 'react-router-dom';
-import { Package, ShoppingCart, Users, BarChart3, LogOut, Wallet, SearchCode, FileText, ImagePlus, Menu, X, Bell, UserCog, Settings as SettingsIcon } from 'lucide-react';
+import { Package, ShoppingCart, Users, BarChart3, LogOut, Wallet, SearchCode, FileText, ImagePlus, Menu, X, Bell, UserCog, Settings as SettingsIcon, TrendingDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import screamLogo from '@/assets/scream-logo.jpeg';
 import { VersionProvider } from '@/contexts/VersionContext';
@@ -26,6 +26,7 @@ const navItems: NavItem[] = [
   { path: '/admin/dashboard/stock-alerts', label: 'تنبيهات المخزون', icon: Bell, permission: 'stock-alerts' },
   { path: '/admin/dashboard/staff', label: 'الموظفين', icon: UserCog, permission: 'admin' },
   { path: '/admin/dashboard/settings', label: 'الإعدادات', icon: SettingsIcon, permission: 'admin' },
+  { path: '/admin/dashboard/sales-control', label: 'التحكم في البيع', icon: TrendingDown, permission: 'admin' },
 ];
 
 const AdminDashboard = () => {

@@ -4,9 +4,25 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useCart, calculateItemTotal, getDescriptionMultiplier } from '@/contexts/CartContext';
 import ProductImage from '@/components/ProductImage';
+import { checkStockForAdd } from '@/lib/stockCheck';
+import { toast } from 'sonner';
 
 const CartPreview = () => {
   const { items, removeItem, updateQuantity, subtotal, totalItems } = useCart();
+
+  const handleIncrement = async (item: typeof items[number]) => {
+    // Compute current cart minus this item by passing items minus 1 unit equivalent:
+    // Simulate: pretend 1 fewer of this item already in cart so the helper can check the +1 add.
+    const simulatedCart = items.map((it) =>
+      it.id === item.id ? { ...it, quantity: it.quantity } : it
+    );
+    const check = await checkStockForAdd(item.productId, item.description, 1, simulatedCart);
+    if (!check.allowed) {
+      toast.error(check.reason || 'لا يمكن زيادة الكمية');
+      return;
+    }
+    updateQuantity(item.id, item.quantity + 1);
+  };
 
   if (items.length === 0) {
     return (
@@ -77,7 +93,7 @@ const CartPreview = () => {
                     variant="outline"
                     size="icon"
                     className="h-7 w-7"
-                    onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                    onClick={() => handleIncrement(item)}
                   >
                     <Plus className="h-3 w-3" />
                   </Button>

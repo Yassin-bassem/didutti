@@ -6,6 +6,8 @@ export interface AppSettings {
   instapay_link: string;
   instapay_label: string;
   vodafone_number: string;
+  sales_mode: 'unlimited' | 'stop_at_zero' | 'allow_negative';
+  sales_negative_limit: string; // stored as string, parsed when used
 }
 
 const DEFAULTS: AppSettings = {
@@ -13,6 +15,8 @@ const DEFAULTS: AppSettings = {
   instapay_link: 'https://ipn.eg/S/diagc/instapay/92UO1b',
   instapay_label: 'diagc@instapay',
   vodafone_number: '01098795115',
+  sales_mode: 'unlimited',
+  sales_negative_limit: '20',
 };
 
 export const fetchAppSettings = async (): Promise<AppSettings> => {
