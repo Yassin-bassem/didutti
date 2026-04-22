@@ -1,45 +1,77 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, Link, Outlet, useLocation } from 'react-router-dom';
-import { Package, ShoppingCart, Users, BarChart3, LogOut, Wallet, SearchCode, FileText, ImagePlus, Menu, X, Bell, UserCog } from 'lucide-react';
+import { useNavigate, Link, Outlet, useLocation, Navigate } from 'react-router-dom';
+import { Package, ShoppingCart, Users, BarChart3, LogOut, Wallet, SearchCode, FileText, ImagePlus, Menu, X, Bell, UserCog, Settings as SettingsIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import screamLogo from '@/assets/scream-logo.jpeg';
 import { VersionProvider } from '@/contexts/VersionContext';
 import VersionSelector from '@/components/VersionSelector';
+import { isAdmin, getStaffSession, PermissionKey } from '@/lib/permissions';
 
-const navItems = [
-  { path: '/admin/dashboard', label: 'الإحصائيات', icon: BarChart3 },
-  { path: '/admin/dashboard/products', label: 'المنتجات', icon: Package },
-  { path: '/admin/dashboard/orders', label: 'الطلبات', icon: ShoppingCart },
-  { path: '/admin/dashboard/customers', label: 'العملاء', icon: Users },
-  { path: '/admin/dashboard/deposits', label: 'العربون', icon: Wallet },
-  { path: '/admin/dashboard/search-by-code', label: 'البحث بالكود', icon: SearchCode },
-  { path: '/admin/dashboard/customer-extra-info', label: 'معلومات إضافية', icon: FileText },
-  { path: '/admin/dashboard/product-images', label: 'صور المنتجات', icon: ImagePlus },
-  { path: '/admin/dashboard/stock-alerts', label: 'تنبيهات المخزون', icon: Bell },
-  { path: '/admin/dashboard/staff', label: 'الموظفين', icon: UserCog },
+interface NavItem {
+  path: string;
+  label: string;
+  icon: any;
+  permission: PermissionKey | 'admin';
+}
+
+const navItems: NavItem[] = [
+  { path: '/admin/dashboard', label: 'الإحصائيات', icon: BarChart3, permission: 'admin' },
+  { path: '/admin/dashboard/products', label: 'المنتجات', icon: Package, permission: 'products' },
+  { path: '/admin/dashboard/orders', label: 'الطلبات', icon: ShoppingCart, permission: 'orders' },
+  { path: '/admin/dashboard/customers', label: 'العملاء', icon: Users, permission: 'customers' },
+  { path: '/admin/dashboard/deposits', label: 'العربون', icon: Wallet, permission: 'deposits' },
+  { path: '/admin/dashboard/search-by-code', label: 'البحث بالكود', icon: SearchCode, permission: 'search-by-code' },
+  { path: '/admin/dashboard/customer-extra-info', label: 'معلومات إضافية', icon: FileText, permission: 'customer-extra-info' },
+  { path: '/admin/dashboard/product-images', label: 'صور المنتجات', icon: ImagePlus, permission: 'product-images' },
+  { path: '/admin/dashboard/stock-alerts', label: 'تنبيهات المخزون', icon: Bell, permission: 'stock-alerts' },
+  { path: '/admin/dashboard/staff', label: 'الموظفين', icon: UserCog, permission: 'admin' },
+  { path: '/admin/dashboard/settings', label: 'الإعدادات', icon: SettingsIcon, permission: 'admin' },
 ];
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [isAuth, setIsAuth] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
+  const [admin, setAdmin] = useState(false);
+  const [staffPerms, setStaffPerms] = useState<PermissionKey[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   useEffect(() => {
-    const auth = sessionStorage.getItem('bubbles_admin');
-    if (!auth) {
+    const isA = isAdmin();
+    const staff = getStaffSession();
+    if (!isA && !staff) {
       navigate('/admin');
-    } else {
-      setIsAuth(true);
+      return;
     }
+    if (isA) {
+      setAdmin(true);
+    } else if (staff) {
+      setStaffPerms(staff.permissions);
+      if (staff.permissions.length === 0) {
+        navigate('/');
+        return;
+      }
+    }
+    setAuthChecked(true);
   }, [navigate]);
 
   const handleLogout = () => {
     sessionStorage.removeItem('bubbles_admin');
+    sessionStorage.removeItem('bubbles_staff');
     navigate('/admin');
   };
 
-  if (!isAuth) return null;
+  if (!authChecked) return null;
+
+  const visibleNav = navItems.filter((item) => {
+    if (item.permission === 'admin') return admin;
+    return admin || staffPerms.includes(item.permission);
+  });
+
+  // If staff lands on the index route, redirect to first allowed page
+  if (!admin && location.pathname === '/admin/dashboard' && staffPerms.length > 0) {
+    return <Navigate to={`/admin/dashboard/${staffPerms[0]}`} replace />;
+  }
 
   return (
     <VersionProvider>
@@ -90,7 +122,7 @@ const AdminDashboard = () => {
           {sidebarOpen && <VersionSelector />}
           
           <nav className="flex-1 p-4 space-y-2 min-w-[256px] lg:min-w-0 overflow-y-auto">
-            {navItems.map((item) => {
+            {visibleNav.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path;
               return (

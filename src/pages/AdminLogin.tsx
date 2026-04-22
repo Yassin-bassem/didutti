@@ -7,8 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import screamLogo from '@/assets/scream-logo.jpeg';
-
-const ADMIN_PASSWORD = '2580';
+import { fetchAppSettings } from '@/hooks/useAppSettings';
 
 const AdminLogin = () => {
   const navigate = useNavigate();
@@ -22,8 +21,12 @@ const AdminLogin = () => {
     e.preventDefault();
     
     if (loginMode === 'admin') {
-      if (password === ADMIN_PASSWORD) {
+      setLoading(true);
+      const settings = await fetchAppSettings();
+      setLoading(false);
+      if (password === settings.admin_password) {
         sessionStorage.setItem('bubbles_admin', 'true');
+        sessionStorage.removeItem('bubbles_staff');
         toast.success('تم تسجيل الدخول بنجاح');
         navigate('/admin/dashboard');
       } else {
@@ -46,12 +49,22 @@ const AdminLogin = () => {
       }
 
       const staffMember = data[0];
+      const permissions = Array.isArray((staffMember as any).permissions)
+        ? (staffMember as any).permissions
+        : [];
       sessionStorage.setItem('bubbles_staff', JSON.stringify({
         id: staffMember.id,
         name: staffMember.name,
+        permissions,
       }));
+      sessionStorage.removeItem('bubbles_admin');
       toast.success(`مرحباً ${staffMember.name}`);
-      navigate('/');
+      // If staff has dashboard permissions, send them to the first one; otherwise to home
+      if (permissions.length > 0) {
+        navigate(`/admin/dashboard/${permissions[0]}`);
+      } else {
+        navigate('/');
+      }
     }
   };
 
