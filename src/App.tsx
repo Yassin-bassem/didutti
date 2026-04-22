@@ -19,6 +19,7 @@ import ProductImages from "./pages/admin/ProductImages";
 import StockAlerts from "./pages/admin/StockAlerts";
 import StaffManagement from "./pages/admin/StaffManagement";
 import Settings from "./pages/admin/Settings";
+import SalesControl from "./pages/admin/SalesControl";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -46,6 +47,7 @@ const App = () => (
               <Route path="stock-alerts" element={<StockAlerts />} />
               <Route path="staff" element={<StaffManagement />} />
               <Route path="settings" element={<Settings />} />
+              <Route path="sales-control" element={<SalesControl />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
