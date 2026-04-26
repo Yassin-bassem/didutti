@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
+import { useLocation } from "react-router-dom";
 
-const START_TIME = new Date("2026-04-26T21:38:39Z").getTime();
 const DURATION_MS = 72 * 60 * 60 * 1000;
-const END_TIME = START_TIME + DURATION_MS;
+const COUNTDOWN_START_KEY = "global_countdown_started_at";
 
 const formatRemaining = (milliseconds: number) => {
   const totalSeconds = Math.max(0, Math.floor(milliseconds / 1000));
@@ -15,9 +15,23 @@ const formatRemaining = (milliseconds: number) => {
 };
 
 const GlobalCountdownLock = () => {
+  const location = useLocation();
   const [now, setNow] = useState(() => Date.now());
-  const remaining = END_TIME - now;
+  const [startedAt, setStartedAt] = useState<number | null>(() => {
+    const savedStart = window.localStorage.getItem(COUNTDOWN_START_KEY);
+    return savedStart ? Number(savedStart) : null;
+  });
+  const remaining = startedAt ? startedAt + DURATION_MS - now : DURATION_MS;
   const isLocked = remaining <= 0;
+
+  useEffect(() => {
+    if (!startedAt && location.pathname.includes("/admin")) {
+      const firstAdminOpenTime = Date.now();
+      window.localStorage.setItem(COUNTDOWN_START_KEY, String(firstAdminOpenTime));
+      setStartedAt(firstAdminOpenTime);
+      setNow(firstAdminOpenTime);
+    }
+  }, [location.pathname, startedAt]);
 
   useEffect(() => {
     const interval = window.setInterval(() => setNow(Date.now()), 1000);
