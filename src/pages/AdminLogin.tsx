@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import screamLogo from '@/assets/scream-logo.jpeg';
+import brandLogo from '@/assets/didutti-logo.jpg';
 import { fetchAppSettings } from '@/hooks/useAppSettings';
 
 const AdminLogin = () => {
@@ -73,8 +73,8 @@ const AdminLogin = () => {
       <Card className="w-full max-w-md border-2 border-primary/20 shadow-baby-lg">
         <CardHeader className="text-center space-y-4">
           <img
-            src={screamLogo}
-            alt="Scream"
+            src={brandLogo}
+            alt="DIDUTTI KID'S"
             className="w-24 h-24 mx-auto rounded-full shadow-baby float-animation object-contain bg-white p-2"
           />
           <CardTitle className="text-2xl gradient-text">
