@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import logoImage from '@/assets/scream-logo.jpeg';
+import logoImage from '@/assets/didutti-logo.jpg';
 import { useVersion } from '@/contexts/VersionContext';
 
 interface OrderItem {
@@ -459,8 +459,8 @@ const Orders = () => {
       </head>
       <body>
         <div class="header">
-          ${logoBase64 ? `<img src="${logoBase64}" alt="Scream Logo" />` : ''}
-          <h1>Scream</h1>
+          ${logoBase64 ? `<img src="${logoBase64}" alt="DIDUTTI KID'S Logo" />` : ''}
+          <h1>DIDUTTI KID'S</h1>
           <h2>فاتورة رقم ${order.order_number}</h2>
         </div>
         <div class="info">

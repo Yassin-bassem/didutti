@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { ShoppingCart, Settings } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
-import screamLogo from '@/assets/scream-logo.jpeg';
+import brandLogo from '@/assets/didutti-logo.jpg';
 
 const Header = () => {
   const { totalItems } = useCart();
@@ -10,8 +10,8 @@ const Header = () => {
     <header className="sticky top-0 z-50 w-full border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
       <div className="container flex h-16 items-center justify-between">
         <Link to="/" className="flex items-center gap-3 transition-transform hover:scale-105">
-          <img src={screamLogo} alt="Scream" className="h-12 w-auto object-contain" />
-          <span className="text-xl font-bold gradient-text">Scream</span>
+          <img src={brandLogo} alt="DIDUTTI KID'S" className="h-12 w-auto object-contain" />
+          <span className="text-xl font-bold gradient-text">DIDUTTI KID'S</span>
         </Link>
 
         <nav className="flex items-center gap-4">

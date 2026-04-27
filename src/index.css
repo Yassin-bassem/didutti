@@ -6,53 +6,53 @@
 
 @layer base {
   :root {
-    /* Scream Brand Colors - Navy & Red Theme */
-    --background: 0 0% 100%;
-    --foreground: 225 50% 12%;
+    /* DIDUTTI KID'S Brand Colors - Navy & Red */
+    --background: 210 25% 98%;
+    --foreground: 215 60% 15%;
 
     --card: 0 0% 100%;
-    --card-foreground: 225 50% 12%;
+    --card-foreground: 215 60% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 225 50% 12%;
+    --popover-foreground: 215 60% 15%;
 
-    /* Primary - Deep Navy */
-    --primary: 225 55% 22%;
+    /* Primary - DIDUTTI Navy */
+    --primary: 215 55% 28%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary - Scream Red */
-    --secondary: 0 75% 50%;
+    /* Secondary - DIDUTTI Red */
+    --secondary: 358 78% 52%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 225 15% 95%;
-    --muted-foreground: 225 15% 40%;
+    --muted: 215 20% 94%;
+    --muted-foreground: 215 20% 38%;
 
     /* Accent - Soft Red Tint */
-    --accent: 0 70% 95%;
-    --accent-foreground: 0 75% 45%;
+    --accent: 358 75% 95%;
+    --accent-foreground: 358 78% 45%;
 
-    --destructive: 0 75% 50%;
+    --destructive: 358 78% 52%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 225 20% 88%;
-    --input: 225 20% 88%;
-    --ring: 225 55% 22%;
+    --border: 215 22% 86%;
+    --input: 215 22% 86%;
+    --ring: 215 55% 28%;
 
     --radius: 1rem;
 
-    /* Custom Scream Colors */
-    --baby-blue: 225 55% 22%;
-    --baby-blue-light: 225 40% 96%;
-    --baby-pink: 0 75% 50%;
-    --baby-pink-light: 0 70% 96%;
-    --baby-gradient: linear-gradient(135deg, hsl(225, 55%, 22%) 0%, hsl(0, 75%, 50%) 100%);
-    --baby-gradient-soft: linear-gradient(135deg, hsl(225, 40%, 96%) 0%, hsl(0, 70%, 96%) 100%);
+    /* Custom DIDUTTI Colors (legacy aliases kept for compatibility) */
+    --baby-blue: 215 55% 28%;
+    --baby-blue-light: 215 40% 96%;
+    --baby-pink: 358 78% 52%;
+    --baby-pink-light: 358 75% 96%;
+    --baby-gradient: linear-gradient(135deg, hsl(215, 55%, 28%) 0%, hsl(358, 78%, 52%) 100%);
+    --baby-gradient-soft: linear-gradient(135deg, hsl(215, 40%, 96%) 0%, hsl(358, 75%, 96%) 100%);
 
     /* Shadows */
-    --shadow-sm: 0 2px 8px -2px hsl(225 55% 22% / 0.15);
-    --shadow-md: 0 8px 24px -4px hsl(225 55% 22% / 0.2);
-    --shadow-lg: 0 16px 48px -8px hsl(225 55% 22% / 0.25);
-    --shadow-pink: 0 8px 24px -4px hsl(0 75% 50% / 0.3);
+    --shadow-sm: 0 2px 8px -2px hsl(215 55% 28% / 0.15);
+    --shadow-md: 0 8px 24px -4px hsl(215 55% 28% / 0.22);
+    --shadow-lg: 0 16px 48px -8px hsl(215 55% 28% / 0.28);
+    --shadow-pink: 0 8px 24px -4px hsl(358 78% 52% / 0.32);
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
