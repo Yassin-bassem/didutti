@@ -21,7 +21,6 @@ import StaffManagement from "./pages/admin/StaffManagement";
 import Settings from "./pages/admin/Settings";
 import SalesControl from "./pages/admin/SalesControl";
 import NotFound from "./pages/NotFound";
-import GlobalCountdownLock from "./components/GlobalCountdownLock";
 
 const queryClient = new QueryClient();
 
@@ -52,7 +51,6 @@ const App = () => (
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
-          <GlobalCountdownLock />
         </BrowserRouter>
       </TooltipProvider>
     </CartProvider>
