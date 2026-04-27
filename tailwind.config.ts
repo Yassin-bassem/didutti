@@ -15,6 +15,8 @@ export default {
     extend: {
       fontFamily: {
         cairo: ['Cairo', 'sans-serif'],
+        display: ['Fraunces', 'Cairo', 'serif'],
+        sans: ['DM Sans', 'Cairo', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -65,6 +67,18 @@ export default {
           "blue-light": "hsl(var(--baby-blue-light))",
           pink: "hsl(var(--baby-pink))",
           "pink-light": "hsl(var(--baby-pink-light))",
+        },
+        ink: {
+          DEFAULT: "hsl(var(--ink))",
+          deep: "hsl(var(--ink-deep))",
+        },
+        cream: {
+          DEFAULT: "hsl(var(--cream))",
+          deep: "hsl(var(--cream-deep))",
+        },
+        signal: {
+          DEFAULT: "hsl(var(--signal))",
+          soft: "hsl(var(--signal-soft))",
         },
       },
       borderRadius: {

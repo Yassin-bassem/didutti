@@ -63,75 +63,104 @@ const Index = () => {
   }, [addItem, items]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-baby-blue-light via-background to-baby-pink-light">
+    <div className="min-h-screen bg-background paper">
       <Header />
-      
-      <main className="container py-6 space-y-6">
-        {/* Hero Section */}
-        <div className="text-center space-y-2 py-4">
-          <h1 className="text-3xl font-bold gradient-text">مرحباً بك في DIDUTTI KID'S</h1>
-          <p className="text-muted-foreground">امسح كود المنتج أو ابحث بالكود لإضافته للسلة</p>
-        </div>
 
-        {/* QR Scanner - Primary Action */}
-        <section className="slide-up">
+      <main className="container py-10 space-y-10 max-w-3xl">
+        {/* Editorial Masthead */}
+        <section className="slide-up border-y border-foreground/15 py-8">
+          <div className="flex items-baseline justify-between mb-4">
+            <span className="eyebrow">Volume I · مرحباً</span>
+            <span className="eyebrow">№ 2026</span>
+          </div>
+          <h1 className="font-display text-5xl md:text-6xl font-black leading-[0.95] tracking-tight text-primary">
+            مرحباً بك<br />
+            <span className="italic font-light text-secondary">في </span>
+            DiDutti<span className="text-secondary">.</span>
+          </h1>
+          <p className="mt-5 text-base text-muted-foreground max-w-md leading-relaxed">
+            امسح كود المنتج أو ابحث بالكود لإضافته إلى السلة — تجربة تسوّق مُنتقاة بعناية لأطفالك.
+          </p>
+        </section>
+
+        {/* QR Scanner — Primary */}
+        <section className="slide-up space-y-3" style={{ animationDelay: '0.05s' }}>
+          <div className="flex items-center gap-3">
+            <span className="eyebrow">01 · المسح</span>
+            <div className="rule flex-1" />
+          </div>
           <QRScanner onScan={handleQRScan} />
         </section>
 
         {/* Cart Preview */}
-        <section className="slide-up" style={{ animationDelay: '0.1s' }}>
+        <section className="slide-up space-y-3" style={{ animationDelay: '0.1s' }}>
+          <div className="flex items-center gap-3">
+            <span className="eyebrow">02 · السلة</span>
+            <div className="rule flex-1" />
+          </div>
           <CartPreview />
         </section>
 
-        {/* Extra Info Box */}
-        <section className="slide-up" style={{ animationDelay: '0.15s' }}>
-          <Card className="border-2 border-border shadow-baby">
+        {/* Extra Info */}
+        <section className="slide-up space-y-3" style={{ animationDelay: '0.15s' }}>
+          <div className="flex items-center gap-3">
+            <span className="eyebrow">03 · ملاحظات</span>
+            <div className="rule flex-1" />
+          </div>
+          <Card className="border border-foreground/15 rounded-none shadow-none bg-card">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <FileEdit className="h-5 w-5 text-primary" />
+              <CardTitle className="font-display text-xl flex items-center gap-2 text-primary">
+                <FileEdit className="h-4 w-4 text-secondary" strokeWidth={2.25} />
                 معلومات إضافية
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <Label htmlFor="extraInfo" className="text-muted-foreground text-sm mb-2 block">
-                أضف أي ملاحظات أو معلومات إضافية تريد إضافتها للفاتورة
+              <Label htmlFor="extraInfo" className="text-muted-foreground text-xs mb-2 block uppercase tracking-wider">
+                أضف ملاحظات تُرفق بالفاتورة
               </Label>
               <Input
                 id="extraInfo"
                 placeholder="ملاحظات إضافية..."
                 value={extraInfo}
                 onChange={(e) => setExtraInfo(e.target.value)}
+                className="rounded-none border-foreground/20 focus-visible:ring-0 focus-visible:border-primary"
               />
             </CardContent>
           </Card>
         </section>
 
         {/* Product Search */}
-        <section className="slide-up" style={{ animationDelay: '0.2s' }}>
-          <div className="rounded-2xl border-2 border-border bg-card p-4 shadow-baby">
-            <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-secondary" />
+        <section className="slide-up space-y-3" style={{ animationDelay: '0.2s' }}>
+          <div className="flex items-center gap-3">
+            <span className="eyebrow">04 · البحث</span>
+            <div className="rule flex-1" />
+          </div>
+          <div className="border border-foreground/15 bg-card p-5">
+            <h2 className="font-display text-xl font-bold mb-4 text-primary">
               البحث بكود المنتج
             </h2>
             <ProductSearch />
           </div>
         </section>
 
-        {/* Made by Yassin Bassem Button */}
-        <section className="slide-up" style={{ animationDelay: '0.25s' }}>
+        {/* Credit */}
+        <section className="slide-up pt-4" style={{ animationDelay: '0.25s' }}>
           <Button
             variant="outline"
-            className="w-full py-6 text-lg font-bold rounded-xl border-2 border-green-500 text-green-600 hover:bg-green-50"
+            className="w-full py-5 rounded-none border border-foreground/20 bg-transparent hover:bg-primary hover:text-primary-foreground hover:border-primary text-foreground font-sans-alt uppercase tracking-[0.2em] text-xs"
             onClick={() => window.open('https://wa.me/201033110143', '_blank')}
           >
-            <MessageCircle className="h-5 w-5 ml-2 text-green-500" />
+            <MessageCircle className="h-4 w-4 ml-2" strokeWidth={2.25} />
             made by yassin bassem
           </Button>
         </section>
 
-        {/* Decorative Elements */}
-        <div className="fixed -bottom-20 -right-20 w-64 h-64 rounded-full bg-primary/5 blur-3xl pointer-events-none" />
-        <div className="fixed -bottom-20 -left-20 w-64 h-64 rounded-full bg-secondary/5 blur-3xl pointer-events-none" />
+        {/* Editorial colophon */}
+        <footer className="pt-8 mt-8 border-t border-foreground/15 flex items-center justify-between text-[10px] uppercase tracking-[0.3em] text-muted-foreground font-sans-alt">
+          <span>DiDutti Kid's</span>
+          <span className="text-secondary">●</span>
+          <span>MMXXVI</span>
+        </footer>
       </main>
     </div>
   );
