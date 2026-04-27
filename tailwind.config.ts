@@ -68,6 +68,18 @@ export default {
           pink: "hsl(var(--baby-pink))",
           "pink-light": "hsl(var(--baby-pink-light))",
         },
+        ink: {
+          DEFAULT: "hsl(var(--ink))",
+          deep: "hsl(var(--ink-deep))",
+        },
+        cream: {
+          DEFAULT: "hsl(var(--cream))",
+          deep: "hsl(var(--cream-deep))",
+        },
+        signal: {
+          DEFAULT: "hsl(var(--signal))",
+          soft: "hsl(var(--signal-soft))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
