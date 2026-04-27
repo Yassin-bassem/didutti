@@ -2,105 +2,114 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap');
+/* DIDUTTI KID'S — Editorial premium kid's fashion aesthetic */
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800;9..144,900&family=DM+Sans:wght@400;500;600;700&display=swap');
 
 @layer base {
   :root {
-    /* DIDUTTI KID'S Brand Colors - Navy & Red */
-    --background: 210 25% 98%;
-    --foreground: 215 60% 15%;
+    /* DIDUTTI Palette — Cream canvas, deep ink, signature red */
+    --background: 38 40% 96%;        /* warm cream */
+    --foreground: 215 50% 14%;       /* deep ink navy */
 
-    --card: 0 0% 100%;
-    --card-foreground: 215 60% 15%;
+    --card: 38 35% 98%;
+    --card-foreground: 215 50% 14%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 215 60% 15%;
+    --popover: 38 35% 98%;
+    --popover-foreground: 215 50% 14%;
 
-    /* Primary - DIDUTTI Navy */
-    --primary: 215 55% 28%;
-    --primary-foreground: 0 0% 100%;
+    /* Primary - DIDUTTI ink navy */
+    --primary: 215 55% 22%;
+    --primary-foreground: 38 40% 96%;
 
-    /* Secondary - DIDUTTI Red */
-    --secondary: 358 78% 52%;
-    --secondary-foreground: 0 0% 100%;
+    /* Secondary - DIDUTTI signature red */
+    --secondary: 358 75% 50%;
+    --secondary-foreground: 38 40% 96%;
 
-    --muted: 215 20% 94%;
-    --muted-foreground: 215 20% 38%;
+    --muted: 38 25% 90%;
+    --muted-foreground: 215 25% 35%;
 
-    /* Accent - Soft Red Tint */
-    --accent: 358 75% 95%;
-    --accent-foreground: 358 78% 45%;
+    /* Accent - warm sand */
+    --accent: 35 45% 88%;
+    --accent-foreground: 215 50% 14%;
 
-    --destructive: 358 78% 52%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive: 358 75% 50%;
+    --destructive-foreground: 38 40% 96%;
 
-    --border: 215 22% 86%;
-    --input: 215 22% 86%;
-    --ring: 215 55% 28%;
+    --border: 215 20% 82%;
+    --input: 215 20% 82%;
+    --ring: 215 55% 22%;
 
-    --radius: 1rem;
+    --radius: 0.25rem;   /* sharp editorial corners */
 
-    /* Custom DIDUTTI Colors (legacy aliases kept for compatibility) */
-    --baby-blue: 215 55% 28%;
-    --baby-blue-light: 215 40% 96%;
-    --baby-pink: 358 78% 52%;
-    --baby-pink-light: 358 75% 96%;
-    --baby-gradient: linear-gradient(135deg, hsl(215, 55%, 28%) 0%, hsl(358, 78%, 52%) 100%);
-    --baby-gradient-soft: linear-gradient(135deg, hsl(215, 40%, 96%) 0%, hsl(358, 75%, 96%) 100%);
+    /* Brand tokens */
+    --ink: 215 55% 22%;
+    --ink-deep: 215 60% 12%;
+    --cream: 38 40% 96%;
+    --cream-deep: 35 35% 90%;
+    --signal: 358 75% 50%;
+    --signal-soft: 358 60% 92%;
 
-    /* Shadows */
-    --shadow-sm: 0 2px 8px -2px hsl(215 55% 28% / 0.15);
-    --shadow-md: 0 8px 24px -4px hsl(215 55% 28% / 0.22);
-    --shadow-lg: 0 16px 48px -8px hsl(215 55% 28% / 0.28);
-    --shadow-pink: 0 8px 24px -4px hsl(358 78% 52% / 0.32);
+    /* Legacy aliases (kept for components that still reference them) */
+    --baby-blue: 215 55% 22%;
+    --baby-blue-light: 38 40% 96%;
+    --baby-pink: 358 75% 50%;
+    --baby-pink-light: 358 60% 92%;
+    --baby-gradient: linear-gradient(135deg, hsl(215 55% 22%) 0%, hsl(358 75% 50%) 100%);
+    --baby-gradient-soft: linear-gradient(180deg, hsl(38 40% 96%) 0%, hsl(35 35% 90%) 100%);
 
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Editorial shadows — subtle, paper-like */
+    --shadow-sm: 0 1px 2px hsl(215 50% 14% / 0.06), 0 1px 3px hsl(215 50% 14% / 0.05);
+    --shadow-md: 0 2px 4px hsl(215 50% 14% / 0.06), 0 8px 24px -8px hsl(215 50% 14% / 0.12);
+    --shadow-lg: 0 8px 16px -4px hsl(215 50% 14% / 0.10), 0 24px 48px -12px hsl(215 50% 14% / 0.18);
+    --shadow-pink: 0 4px 14px -2px hsl(358 75% 50% / 0.28);
+
+    --sidebar-background: 38 35% 97%;
+    --sidebar-foreground: 215 40% 22%;
+    --sidebar-primary: 215 55% 22%;
+    --sidebar-primary-foreground: 38 40% 96%;
+    --sidebar-accent: 35 45% 90%;
+    --sidebar-accent-foreground: 215 50% 14%;
+    --sidebar-border: 215 20% 84%;
+    --sidebar-ring: 215 55% 22%;
   }
 
   .dark {
-    --background: 225 40% 8%;
-    --foreground: 225 20% 95%;
+    --background: 215 45% 8%;
+    --foreground: 38 30% 92%;
 
-    --card: 225 40% 12%;
-    --card-foreground: 225 20% 95%;
+    --card: 215 45% 11%;
+    --card-foreground: 38 30% 92%;
 
-    --popover: 225 40% 12%;
-    --popover-foreground: 225 20% 95%;
+    --popover: 215 45% 11%;
+    --popover-foreground: 38 30% 92%;
 
-    --primary: 225 55% 50%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 38 35% 90%;
+    --primary-foreground: 215 55% 14%;
 
-    --secondary: 0 75% 55%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 358 75% 55%;
+    --secondary-foreground: 38 30% 96%;
 
-    --muted: 225 25% 18%;
-    --muted-foreground: 225 15% 65%;
+    --muted: 215 30% 18%;
+    --muted-foreground: 38 20% 70%;
 
-    --accent: 0 50% 25%;
-    --accent-foreground: 0 70% 90%;
+    --accent: 215 40% 22%;
+    --accent-foreground: 38 30% 92%;
 
-    --destructive: 0 70% 50%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive: 358 70% 55%;
+    --destructive-foreground: 38 30% 96%;
 
-    --border: 225 25% 20%;
-    --input: 225 25% 20%;
-    --ring: 225 55% 50%;
+    --border: 215 30% 22%;
+    --input: 215 30% 22%;
+    --ring: 38 35% 80%;
 
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: 215 45% 10%;
+    --sidebar-foreground: 38 25% 88%;
+    --sidebar-primary: 38 35% 90%;
+    --sidebar-primary-foreground: 215 55% 14%;
+    --sidebar-accent: 215 35% 16%;
+    --sidebar-accent-foreground: 38 30% 90%;
+    --sidebar-border: 215 30% 20%;
+    --sidebar-ring: 38 35% 80%;
   }
 }
 
@@ -115,12 +124,23 @@
 
   body {
     @apply bg-background text-foreground font-cairo antialiased;
+    font-feature-settings: "ss01", "cv11";
+  }
+
+  /* Editorial display headings use Fraunces serif */
+  h1, h2, .display {
+    font-family: 'Fraunces', 'Cairo', serif;
+    font-feature-settings: "ss01";
+    letter-spacing: -0.02em;
   }
 }
 
 @layer components {
   .gradient-text {
-    @apply bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent;
+    @apply text-primary;
+    font-family: 'Fraunces', 'Cairo', serif;
+    font-weight: 700;
+    letter-spacing: -0.01em;
   }
 
   .gradient-bg {
@@ -131,24 +151,42 @@
     background: var(--baby-gradient-soft);
   }
 
+  /* Editorial card with hairline border, no playful lift */
   .card-hover {
-    @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
+    @apply transition-all duration-300 hover:shadow-md hover:border-primary/40;
   }
 
   .btn-bounce {
-    @apply transition-transform duration-200 active:scale-95;
+    @apply transition-transform duration-200 active:scale-[0.98];
   }
 
   .float-animation {
-    animation: float 3s ease-in-out infinite;
+    animation: float 4s ease-in-out infinite;
   }
 
   .pulse-soft {
-    animation: pulse-soft 2s ease-in-out infinite;
+    animation: pulse-soft 2.4s ease-in-out infinite;
   }
 
   .slide-up {
     animation: slide-up 0.5s ease-out;
+  }
+
+  /* Vertical eyebrow label — editorial signature */
+  .eyebrow {
+    @apply uppercase tracking-[0.25em] text-xs font-semibold text-secondary;
+  }
+
+  /* Hairline rule used as section divider */
+  .rule {
+    @apply h-px w-full bg-foreground/15;
+  }
+
+  /* Paper texture overlay (very subtle) */
+  .paper {
+    background-image:
+      radial-gradient(circle at 1px 1px, hsl(var(--foreground) / 0.04) 1px, transparent 0);
+    background-size: 22px 22px;
   }
 }
 
@@ -156,52 +194,38 @@
   .shadow-baby {
     box-shadow: var(--shadow-md);
   }
-
   .shadow-baby-lg {
     box-shadow: var(--shadow-lg);
   }
-
   .shadow-pink {
     box-shadow: var(--shadow-pink);
+  }
+  .font-display {
+    font-family: 'Fraunces', 'Cairo', serif;
+  }
+  .font-sans-alt {
+    font-family: 'DM Sans', 'Cairo', sans-serif;
   }
 }
 
 @keyframes float {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-8px); }
 }
 
 @keyframes pulse-soft {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.7;
-  }
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.75; }
 }
 
 @keyframes slide-up {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
 
 .shimmer {
