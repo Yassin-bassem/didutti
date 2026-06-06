@@ -49,6 +49,14 @@ const Products = () => {
     stock_quantity: 0,
     low_stock_threshold: 10,
   });
+  const [threeCount, setThreeCount] = useState<number>(0);
+
+  // Parse multiplier from description like "200/20" -> 20
+  const parseThreeCount = (desc: string): number => {
+    if (!desc) return 0;
+    const m = desc.match(/^\d+\/(\d+)$/);
+    return m ? parseInt(m[1], 10) : 0;
+  };
 
   useEffect(() => {
     if (activeVersion) {
