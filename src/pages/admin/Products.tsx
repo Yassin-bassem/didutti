@@ -388,6 +388,7 @@ const Products = () => {
       stock_quantity: 0,
       low_stock_threshold: 10,
     });
+    setThreeCount(0);
   };
 
   if (!activeVersion) {
