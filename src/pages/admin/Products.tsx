@@ -443,11 +443,20 @@ const Products = () => {
                   />
                 </div>
                 <div>
-                  <Label>السعر/عدد الثري</Label>
+                  <Label>عدد الثري</Label>
                   <Input
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    type="number"
+                    min={0}
+                    value={threeCount}
+                    onChange={(e) => setThreeCount(parseInt(e.target.value) || 0)}
+                    dir="ltr"
+                    placeholder="مثال: 20"
                   />
+                  {threeCount > 0 && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      الإجمالي: {formData.price} × {threeCount} = {formData.price * threeCount} ج.م
+                    </p>
+                  )}
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
