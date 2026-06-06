@@ -49,6 +49,14 @@ const Products = () => {
     stock_quantity: 0,
     low_stock_threshold: 10,
   });
+  const [threeCount, setThreeCount] = useState<number>(0);
+
+  // Parse multiplier from description like "200/20" -> 20
+  const parseThreeCount = (desc: string): number => {
+    if (!desc) return 0;
+    const m = desc.match(/^\d+\/(\d+)$/);
+    return m ? parseInt(m[1], 10) : 0;
+  };
 
   useEffect(() => {
     if (activeVersion) {
@@ -93,17 +101,25 @@ const Products = () => {
     }
 
     try {
+      // If عدد الثري is set, override description with `${price}/${threeCount}` format
+      const payload = {
+        ...formData,
+        description: threeCount > 0
+          ? `${formData.price}/${threeCount}`
+          : formData.description,
+      };
+
       if (editingProduct) {
         const { error } = await supabase
           .from('products')
-          .update(formData)
+          .update(payload)
           .eq('id', editingProduct.id);
 
         if (error) throw error;
         toast.success('تم تحديث المنتج');
       } else {
         const { error } = await supabase.from('products').insert({
-          ...formData,
+          ...payload,
           version_id: activeVersion.id,
         });
         if (error) throw error;
@@ -128,6 +144,7 @@ const Products = () => {
       stock_quantity: product.stock_quantity,
       low_stock_threshold: product.low_stock_threshold,
     });
+    setThreeCount(parseThreeCount(product.description || ''));
     setDialogOpen(true);
   };
 
@@ -371,6 +388,7 @@ const Products = () => {
       stock_quantity: 0,
       low_stock_threshold: 10,
     });
+    setThreeCount(0);
   };
 
   if (!activeVersion) {
@@ -425,11 +443,20 @@ const Products = () => {
                   />
                 </div>
                 <div>
-                  <Label>السعر/عدد الثري</Label>
+                  <Label>عدد الثري</Label>
                   <Input
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    type="number"
+                    min={0}
+                    value={threeCount}
+                    onChange={(e) => setThreeCount(parseInt(e.target.value) || 0)}
+                    dir="ltr"
+                    placeholder="مثال: 20"
                   />
+                  {threeCount > 0 && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      الإجمالي: {formData.price} × {threeCount} = {formData.price * threeCount} ج.م
+                    </p>
+                  )}
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
