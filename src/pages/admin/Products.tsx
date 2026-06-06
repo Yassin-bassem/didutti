@@ -101,17 +101,25 @@ const Products = () => {
     }
 
     try {
+      // If عدد الثري is set, override description with `${price}/${threeCount}` format
+      const payload = {
+        ...formData,
+        description: threeCount > 0
+          ? `${formData.price}/${threeCount}`
+          : formData.description,
+      };
+
       if (editingProduct) {
         const { error } = await supabase
           .from('products')
-          .update(formData)
+          .update(payload)
           .eq('id', editingProduct.id);
 
         if (error) throw error;
         toast.success('تم تحديث المنتج');
       } else {
         const { error } = await supabase.from('products').insert({
-          ...formData,
+          ...payload,
           version_id: activeVersion.id,
         });
         if (error) throw error;
