@@ -144,6 +144,7 @@ const Products = () => {
       stock_quantity: product.stock_quantity,
       low_stock_threshold: product.low_stock_threshold,
     });
+    setThreeCount(parseThreeCount(product.description || ''));
     setDialogOpen(true);
   };
 
