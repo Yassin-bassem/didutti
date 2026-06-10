@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link, Outlet, useLocation, Navigate } from 'react-router-dom';
-import { Package, ShoppingCart, Users, BarChart3, LogOut, Wallet, SearchCode, FileText, Menu, X, Bell, UserCog, Settings as SettingsIcon, TrendingDown } from 'lucide-react';
+import { Package, ShoppingCart, Users, BarChart3, LogOut, Wallet, SearchCode, FileText, Menu, X, Bell, UserCog, Settings as SettingsIcon, TrendingDown, DatabaseBackup } from 'lucide-react';
+import { buildBackupZip, downloadBlob, backupFilename, todayDateString } from '@/lib/backup';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import brandLogo from '@/assets/didutti-logo.jpg';
 import { VersionProvider } from '@/contexts/VersionContext';
@@ -26,6 +28,7 @@ const navItems: NavItem[] = [
   { path: '/admin/dashboard/staff', label: 'الموظفين', icon: UserCog, permission: 'admin' },
   { path: '/admin/dashboard/settings', label: 'الإعدادات', icon: SettingsIcon, permission: 'admin' },
   { path: '/admin/dashboard/sales-control', label: 'التحكم في البيع', icon: TrendingDown, permission: 'admin' },
+  { path: '/admin/dashboard/backup', label: 'النسخ الاحتياطي', icon: DatabaseBackup, permission: 'admin' },
 ];
 
 const AdminDashboard = () => {
@@ -54,6 +57,26 @@ const AdminDashboard = () => {
     }
     setAuthChecked(true);
   }, [navigate]);
+
+  // Auto daily backup on desktop (admin only)
+  useEffect(() => {
+    if (!admin) return;
+    const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || window.innerWidth < 1024;
+    if (isMobile) return;
+    const today = todayDateString();
+    const last = localStorage.getItem('didutti_last_auto_backup');
+    if (last === today) return;
+    (async () => {
+      try {
+        const blob = await buildBackupZip();
+        downloadBlob(blob, backupFilename());
+        localStorage.setItem('didutti_last_auto_backup', today);
+        toast.success('تم تحميل النسخة الاحتياطية اليومية تلقائياً');
+      } catch (e: any) {
+        console.error('Auto-backup failed:', e);
+      }
+    })();
+  }, [admin]);
 
   const handleLogout = () => {
     sessionStorage.removeItem('bubbles_admin');
