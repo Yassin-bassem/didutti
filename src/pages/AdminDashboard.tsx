@@ -58,6 +58,26 @@ const AdminDashboard = () => {
     setAuthChecked(true);
   }, [navigate]);
 
+  // Auto daily backup on desktop (admin only)
+  useEffect(() => {
+    if (!admin) return;
+    const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || window.innerWidth < 1024;
+    if (isMobile) return;
+    const today = todayDateString();
+    const last = localStorage.getItem('didutti_last_auto_backup');
+    if (last === today) return;
+    (async () => {
+      try {
+        const blob = await buildBackupZip();
+        downloadBlob(blob, backupFilename());
+        localStorage.setItem('didutti_last_auto_backup', today);
+        toast.success('تم تحميل النسخة الاحتياطية اليومية تلقائياً');
+      } catch (e: any) {
+        console.error('Auto-backup failed:', e);
+      }
+    })();
+  }, [admin]);
+
   const handleLogout = () => {
     sessionStorage.removeItem('bubbles_admin');
     sessionStorage.removeItem('bubbles_staff');
