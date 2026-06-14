@@ -55,6 +55,7 @@ const Index = () => {
           imageUrl: data.image_url || undefined,
         });
         toast.success(`تمت إضافة "${data.name}" للسلة`);
+        setScannedCode(code);
       } else {
         toast.error('المنتج غير موجود');
       }
