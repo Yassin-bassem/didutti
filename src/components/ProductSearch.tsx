@@ -24,6 +24,7 @@ const ProductSearch = () => {
   const [searchCode, setSearchCode] = useState('');
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(false);
+  const [variantCode, setVariantCode] = useState<string | null>(null);
   const { addItem, items } = useCart();
 
   const handleSearch = async () => {
