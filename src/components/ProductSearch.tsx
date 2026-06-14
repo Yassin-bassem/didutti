@@ -8,6 +8,7 @@ import { useCart } from '@/contexts/CartContext';
 import { toast } from 'sonner';
 import ProductImage from '@/components/ProductImage';
 import { checkStockForAdd } from '@/lib/stockCheck';
+import VariantSuggestions from '@/components/VariantSuggestions';
 
 interface Product {
   id: string;
@@ -23,6 +24,7 @@ const ProductSearch = () => {
   const [searchCode, setSearchCode] = useState('');
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(false);
+  const [variantCode, setVariantCode] = useState<string | null>(null);
   const { addItem, items } = useCart();
 
   const handleSearch = async () => {
@@ -86,14 +88,18 @@ const ProductSearch = () => {
     });
     
     toast.success('تمت إضافة المنتج للسلة');
+    const addedCode = product.code;
     setProduct(null);
     setSearchCode('');
+    setVariantCode(addedCode);
   };
 
   return (
     <div className="space-y-4">
+      <VariantSuggestions scannedCode={variantCode} onClose={() => setVariantCode(null)} />
       <div className="flex gap-2">
         <div className="relative flex-1">
+
           <Search className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
           <Input
             type="text"
