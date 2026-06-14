@@ -88,8 +88,10 @@ const ProductSearch = () => {
     });
     
     toast.success('تمت إضافة المنتج للسلة');
+    const addedCode = product.code;
     setProduct(null);
     setSearchCode('');
+    setVariantCode(addedCode);
   };
 
   return (
