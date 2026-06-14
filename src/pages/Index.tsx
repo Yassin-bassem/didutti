@@ -16,6 +16,7 @@ import { MessageCircle, FileEdit } from 'lucide-react';
 
 const Index = () => {
   const { addItem, extraInfo, setExtraInfo, items } = useCart();
+  const [scannedCode, setScannedCode] = useState<string | null>(null);
 
   const handleQRScan = useCallback(async (code: string) => {
     try {
