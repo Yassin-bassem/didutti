@@ -8,6 +8,7 @@ import { useCart } from '@/contexts/CartContext';
 import { toast } from 'sonner';
 import ProductImage from '@/components/ProductImage';
 import { checkStockForAdd } from '@/lib/stockCheck';
+import VariantSuggestions from '@/components/VariantSuggestions';
 
 interface Product {
   id: string;
