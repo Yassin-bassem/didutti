@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useCart } from '@/contexts/CartContext';
 import { toast } from 'sonner';
@@ -7,6 +7,7 @@ import Header from '@/components/Header';
 import QRScanner from '@/components/QRScanner';
 import CartPreview from '@/components/CartPreview';
 import ProductSearch from '@/components/ProductSearch';
+import VariantSuggestions from '@/components/VariantSuggestions';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,6 +16,7 @@ import { MessageCircle, FileEdit } from 'lucide-react';
 
 const Index = () => {
   const { addItem, extraInfo, setExtraInfo, items } = useCart();
+  const [scannedCode, setScannedCode] = useState<string | null>(null);
 
   const handleQRScan = useCallback(async (code: string) => {
     try {
@@ -53,6 +55,7 @@ const Index = () => {
           imageUrl: data.image_url || undefined,
         });
         toast.success(`تمت إضافة "${data.name}" للسلة`);
+        setScannedCode(code);
       } else {
         toast.error('المنتج غير موجود');
       }
@@ -64,6 +67,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background paper">
+      <VariantSuggestions scannedCode={scannedCode} onClose={() => setScannedCode(null)} />
       <Header />
 
       <main className="container py-10 space-y-10 max-w-3xl">
