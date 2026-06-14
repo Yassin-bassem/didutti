@@ -96,8 +96,10 @@ const ProductSearch = () => {
 
   return (
     <div className="space-y-4">
+      <VariantSuggestions scannedCode={variantCode} onClose={() => setVariantCode(null)} />
       <div className="flex gap-2">
         <div className="relative flex-1">
+
           <Search className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
           <Input
             type="text"
