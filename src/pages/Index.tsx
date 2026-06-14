@@ -67,6 +67,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background paper">
+      <VariantSuggestions scannedCode={scannedCode} onClose={() => setScannedCode(null)} />
       <Header />
 
       <main className="container py-10 space-y-10 max-w-3xl">
