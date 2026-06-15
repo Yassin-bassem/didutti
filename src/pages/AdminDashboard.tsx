@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useNavigate, Link, Outlet, useLocation, Navigate } from 'react-router-dom';
 import { Package, ShoppingCart, Users, BarChart3, LogOut, Wallet, SearchCode, FileText, Menu, X, Bell, UserCog, Settings as SettingsIcon, TrendingDown, DatabaseBackup } from 'lucide-react';
 import { buildBackupZip, downloadBlob, backupFilename, todayDateString } from '@/lib/backup';
+import { notifyTelegram } from '@/lib/telegramNotify';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import brandLogo from '@/assets/didutti-logo.jpg';
