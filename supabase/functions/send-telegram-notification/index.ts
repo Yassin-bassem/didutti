@@ -157,6 +157,10 @@ Deno.serve(async (req) => {
     if (anyFailed && results.every((x) => !x.ok)) {
       throw new Error(`Telegram API error: ${JSON.stringify(results)}`);
     }
+
+    return new Response(JSON.stringify({ success: true, sentTo: results.length, results }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
   } catch (error) {
     console.error('Error sending Telegram notification:', error);
     const msg = error instanceof Error ? error.message : 'Unknown error';
