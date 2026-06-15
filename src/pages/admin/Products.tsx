@@ -167,11 +167,20 @@ const Products = () => {
   const handleDelete = async (id: string) => {
     if (!confirm('هل أنت متأكد من حذف هذا المنتج؟')) return;
 
+    const target = products.find((p) => p.id === id);
     const { error } = await supabase.from('products').delete().eq('id', id);
     if (error) {
       toast.error('فشل في حذف المنتج');
     } else {
       toast.success('تم حذف المنتج');
+      if (target) {
+        notifyTelegram({
+          type: 'product_deleted',
+          code: target.code, name: target.name,
+          price: target.price, stock_quantity: target.stock_quantity,
+          versionName: activeVersion?.name,
+        });
+      }
       loadProducts();
     }
   };
