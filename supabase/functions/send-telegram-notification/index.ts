@@ -154,6 +154,7 @@ Deno.serve(async (req) => {
       case 'product_deleted': message = buildProductDeletedMessage(payload); break;
       case 'product_updated': message = buildProductUpdatedMessage(payload); break;
       case 'order_edited': message = buildOrderEditedMessage(payload); break;
+      case 'order_deleted': message = buildOrderDeletedMessage(payload); break;
       case 'daily_summary': message = buildDailySummaryMessage(payload); break;
       case 'order':
       default:
