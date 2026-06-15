@@ -135,17 +135,30 @@ Deno.serve(async (req) => {
         message = buildOrderMessage(payload);
     }
 
-    const r = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: message, parse_mode: 'MarkdownV2' }),
-    });
-    const result = await r.json();
-    if (!r.ok) {
-      console.error('Telegram API error:', result);
-      throw new Error(`Telegram API error [${r.status}]: ${JSON.stringify(result)}`);
+    // Support multiple chat IDs (comma/space/newline separated) + optional TELEGRAM_CHAT_ID_2
+    const extra = Deno.env.get('TELEGRAM_CHAT_ID_2') || '';
+    const chatIds = `${TELEGRAM_CHAT_ID},${extra}`
+      .split(/[\s,]+/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    const results = await Promise.all(chatIds.map(async (chatId) => {
+      const r = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chat_id: chatId, text: message, parse_mode: 'MarkdownV2' }),
+      });
+      const body = await r.json();
+      if (!r.ok) console.error(`Telegram error for ${chatId}:`, body);
+      return { chatId, ok: r.ok, body };
+    }));
+
+    const anyFailed = results.some((x) => !x.ok);
+    if (anyFailed && results.every((x) => !x.ok)) {
+      throw new Error(`Telegram API error: ${JSON.stringify(results)}`);
     }
-    return new Response(JSON.stringify({ success: true }), {
+
+    return new Response(JSON.stringify({ success: true, sentTo: results.length, results }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
