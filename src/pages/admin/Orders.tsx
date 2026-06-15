@@ -159,7 +159,9 @@ const Orders = () => {
 
   const handleEdit = async (order: Order) => {
     const items = await loadOrderItems(order.id);
-    setSelectedOrder({ ...order, items });
+    const full = { ...order, items };
+    setSelectedOrder(full);
+    setOriginalOrder(JSON.parse(JSON.stringify(full)));
     setEditDialogOpen(true);
   };
 
