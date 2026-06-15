@@ -118,6 +118,14 @@ const Products = () => {
 
         if (error) throw error;
         toast.success('تم تحديث المنتج');
+        const labels: Record<string, string> = {
+          code: 'الكود', name: 'الاسم', description: 'الوصف',
+          price: 'السعر', stock_quantity: 'المخزون', low_stock_threshold: 'حد التنبيه',
+        };
+        const changes = diffObjects(editingProduct as any, { ...editingProduct, ...payload }, labels);
+        if (changes.length > 0) {
+          notifyTelegram({ type: 'product_updated', code: payload.code, name: payload.name, changes });
+        }
       } else {
         const { error } = await supabase.from('products').insert({
           ...payload,
@@ -125,6 +133,13 @@ const Products = () => {
         });
         if (error) throw error;
         toast.success('تم إضافة المنتج');
+        notifyTelegram({
+          type: 'product_added',
+          code: payload.code, name: payload.name, description: payload.description,
+          price: payload.price, stock_quantity: payload.stock_quantity,
+          low_stock_threshold: payload.low_stock_threshold,
+          versionName: activeVersion.name,
+        });
       }
 
       setDialogOpen(false);
