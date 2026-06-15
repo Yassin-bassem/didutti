@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import logoImage from '@/assets/didutti-logo.jpg';
 import { useVersion } from '@/contexts/VersionContext';
+import { notifyTelegram, diffObjects } from '@/lib/telegramNotify';
 
 interface OrderItem {
   id: string;
