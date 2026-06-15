@@ -398,7 +398,16 @@ const Orders = () => {
         subtotal: newSubtotal,
         total: newSubtotal - selectedOrder.deposit_amount - getDiscountAmount(selectedOrder, newSubtotal),
       }).eq('id', selectedOrder.id);
-      
+
+      if (itemToRemove) {
+        notifyTelegram({
+          type: 'order_edited',
+          orderNumber: selectedOrder.order_number,
+          customerName: selectedOrder.customer_name,
+          changes: [{ field: 'حذف منتج', from: `${itemToRemove.product_code} - ${itemToRemove.product_name} (كمية ${itemToRemove.quantity})`, to: '—' }],
+        });
+      }
+
       loadOrders();
     }
   };
