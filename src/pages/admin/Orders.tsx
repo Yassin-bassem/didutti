@@ -357,7 +357,14 @@ const Orders = () => {
         subtotal: newSubtotal,
         total: newSubtotal - selectedOrder.deposit_amount - getDiscountAmount(selectedOrder, newSubtotal),
       }).eq('id', selectedOrder.id);
-      
+
+      notifyTelegram({
+        type: 'order_edited',
+        orderNumber: selectedOrder.order_number,
+        customerName: selectedOrder.customer_name,
+        changes: [{ field: 'إضافة منتج', from: '—', to: `${product.code} - ${product.name} (كمية 1)` }],
+      });
+
       loadOrders();
     }
   };
