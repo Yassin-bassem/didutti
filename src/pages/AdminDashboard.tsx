@@ -80,6 +80,47 @@ const AdminDashboard = () => {
     })();
   }, [admin]);
 
+  // Daily Telegram summary on admin open (once per day)
+  useEffect(() => {
+    if (!admin) return;
+    const today = todayDateString();
+    const last = localStorage.getItem('didutti_last_daily_tg_summary');
+    if (last === today) return;
+    (async () => {
+      try {
+        const start = `${today}T00:00:00`;
+        const end = `${today}T23:59:59`;
+        const [{ data: orders }, { data: deposits }, { data: expenses }] = await Promise.all([
+          supabase.from('orders').select('total, subtotal').gte('created_at', start).lte('created_at', end),
+          supabase.from('deposits').select('amount, method').gte('created_at', start).lte('created_at', end),
+          supabase.from('expenses').select('amount').gte('created_at', start).lte('created_at', end),
+        ]);
+        const ordersCount = orders?.length || 0;
+        const totalSales = (orders || []).reduce((s: number, o: any) => s + Number(o.subtotal || 0), 0);
+        const totalCollected = (deposits || []).reduce((s: number, d: any) => s + Number(d.amount || 0), 0);
+        const depBy: Record<string, number> = { cash: 0, instapay: 0, vodafone_cash: 0 };
+        (deposits || []).forEach((d: any) => { depBy[d.method] = (depBy[d.method] || 0) + Number(d.amount || 0); });
+        const expensesTotal = (expenses || []).reduce((s: number, e: any) => s + Number(e.amount || 0), 0);
+        await notifyTelegram({
+          type: 'daily_summary',
+          date: today,
+          ordersCount,
+          totalSales: totalSales.toFixed(2),
+          totalCollected: totalCollected.toFixed(2),
+          deposits: {
+            cash: depBy.cash.toFixed(2),
+            instapay: depBy.instapay.toFixed(2),
+            vodafone_cash: depBy.vodafone_cash.toFixed(2),
+          },
+          expenses: expensesTotal.toFixed(2),
+        });
+        localStorage.setItem('didutti_last_daily_tg_summary', today);
+      } catch (e) {
+        console.error('Daily summary failed:', e);
+      }
+    })();
+  }, [admin]);
+
   const handleLogout = () => {
     sessionStorage.removeItem('bubbles_admin');
     sessionStorage.removeItem('bubbles_staff');
