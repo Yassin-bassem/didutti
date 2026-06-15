@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import logoImage from '@/assets/didutti-logo.jpg';
 import { useVersion } from '@/contexts/VersionContext';
+import { notifyTelegram, diffObjects } from '@/lib/telegramNotify';
 
 interface OrderItem {
   id: string;
@@ -90,6 +91,7 @@ const Orders = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [originalOrder, setOriginalOrder] = useState<Order | null>(null);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [duplicateDialogOpen, setDuplicateDialogOpen] = useState(false);
@@ -157,7 +159,9 @@ const Orders = () => {
 
   const handleEdit = async (order: Order) => {
     const items = await loadOrderItems(order.id);
-    setSelectedOrder({ ...order, items });
+    const full = { ...order, items };
+    setSelectedOrder(full);
+    setOriginalOrder(JSON.parse(JSON.stringify(full)));
     setEditDialogOpen(true);
   };
 
@@ -1044,6 +1048,36 @@ const Orders = () => {
                       }
 
                       toast.success('تم حفظ التعديلات');
+
+                      // Telegram diff notification
+                      if (originalOrder) {
+                        const labels: Record<string, string> = {
+                          customer_name: 'اسم العميل',
+                          phone: 'الهاتف',
+                          shop_name: 'المحل',
+                          address: 'العنوان',
+                          delivery_date: 'تاريخ التسليم',
+                          shipping_company: 'شركة الشحن',
+                          deposit_method: 'طريقة العربون',
+                          deposit_amount: 'مبلغ العربون',
+                          discount: 'الخصم',
+                          discount_type: 'نوع الخصم',
+                        };
+                        const changes = diffObjects(originalOrder as any, selectedOrder as any, labels);
+                        if (Math.abs((originalOrder as any).total - calcTotal) > 0.001) {
+                          changes.push({ field: 'الإجمالي المطلوب', from: (originalOrder as any).total, to: calcTotal });
+                        }
+                        if (changes.length > 0) {
+                          notifyTelegram({
+                            type: 'order_edited',
+                            orderNumber: selectedOrder.order_number,
+                            customerName: selectedOrder.customer_name,
+                            changes,
+                          });
+                          setOriginalOrder({ ...selectedOrder, total: calcTotal } as any);
+                        }
+                      }
+
                       loadOrders();
                     }
                   }}

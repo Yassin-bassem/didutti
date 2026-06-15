@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import QRCode from 'qrcode';
 import { useVersion } from '@/contexts/VersionContext';
 import ProductImage from '@/components/ProductImage';
+import { notifyTelegram, diffObjects } from '@/lib/telegramNotify';
 
 interface Product {
   id: string;
@@ -117,6 +118,14 @@ const Products = () => {
 
         if (error) throw error;
         toast.success('تم تحديث المنتج');
+        const labels: Record<string, string> = {
+          code: 'الكود', name: 'الاسم', description: 'الوصف',
+          price: 'السعر', stock_quantity: 'المخزون', low_stock_threshold: 'حد التنبيه',
+        };
+        const changes = diffObjects(editingProduct as any, { ...editingProduct, ...payload }, labels);
+        if (changes.length > 0) {
+          notifyTelegram({ type: 'product_updated', code: payload.code, name: payload.name, changes });
+        }
       } else {
         const { error } = await supabase.from('products').insert({
           ...payload,
@@ -124,6 +133,13 @@ const Products = () => {
         });
         if (error) throw error;
         toast.success('تم إضافة المنتج');
+        notifyTelegram({
+          type: 'product_added',
+          code: payload.code, name: payload.name, description: payload.description,
+          price: payload.price, stock_quantity: payload.stock_quantity,
+          low_stock_threshold: payload.low_stock_threshold,
+          versionName: activeVersion.name,
+        });
       }
 
       setDialogOpen(false);
@@ -151,11 +167,20 @@ const Products = () => {
   const handleDelete = async (id: string) => {
     if (!confirm('هل أنت متأكد من حذف هذا المنتج؟')) return;
 
+    const target = products.find((p) => p.id === id);
     const { error } = await supabase.from('products').delete().eq('id', id);
     if (error) {
       toast.error('فشل في حذف المنتج');
     } else {
       toast.success('تم حذف المنتج');
+      if (target) {
+        notifyTelegram({
+          type: 'product_deleted',
+          code: target.code, name: target.name,
+          price: target.price, stock_quantity: target.stock_quantity,
+          versionName: activeVersion?.name,
+        });
+      }
       loadProducts();
     }
   };
