@@ -448,7 +448,16 @@ const Orders = () => {
         subtotal: newSubtotal,
         total: newSubtotal - selectedOrder.deposit_amount - getDiscountAmount(selectedOrder, newSubtotal),
       }).eq('id', selectedOrder.id);
-      
+
+      if (quantityDiff !== 0) {
+        notifyTelegram({
+          type: 'order_edited',
+          orderNumber: selectedOrder.order_number,
+          customerName: selectedOrder.customer_name,
+          changes: [{ field: `كمية ${currentItem.product_code} - ${currentItem.product_name}`, from: currentItem.quantity, to: quantity }],
+        });
+      }
+
       loadOrders();
     }
   };
