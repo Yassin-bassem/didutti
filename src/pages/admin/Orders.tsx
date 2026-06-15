@@ -259,6 +259,9 @@ const Orders = () => {
   const handleDelete = async (id: string) => {
     if (!confirm('هل أنت متأكد من حذف هذا الطلب؟')) return;
 
+    // Get full order for telegram notification
+    const orderToDelete = orders.find(o => o.id === id);
+
     // First get order items to restore stock
     const items = await loadOrderItems(id);
     
@@ -279,6 +282,28 @@ const Orders = () => {
       // Reset order number sequence to continue from max existing order number
       await supabase.rpc('reset_order_number_sequence');
       toast.success('تم حذف الطلب');
+
+      if (orderToDelete) {
+        notifyTelegram({
+          type: 'order_deleted',
+          orderNumber: orderToDelete.order_number,
+          customerName: orderToDelete.customer_name,
+          shopName: orderToDelete.shop_name,
+          phone: orderToDelete.phone,
+          address: orderToDelete.address,
+          subtotal: orderToDelete.subtotal,
+          total: orderToDelete.total,
+          depositAmount: orderToDelete.deposit_amount,
+          depositMethod: orderToDelete.deposit_method,
+          items: items.map((it: any) => ({
+            name: it.product_name,
+            code: it.product_code,
+            quantity: it.quantity,
+            price: it.price,
+          })),
+        });
+      }
+
       loadOrders();
     }
   };
@@ -332,7 +357,14 @@ const Orders = () => {
         subtotal: newSubtotal,
         total: newSubtotal - selectedOrder.deposit_amount - getDiscountAmount(selectedOrder, newSubtotal),
       }).eq('id', selectedOrder.id);
-      
+
+      notifyTelegram({
+        type: 'order_edited',
+        orderNumber: selectedOrder.order_number,
+        customerName: selectedOrder.customer_name,
+        changes: [{ field: 'إضافة منتج', from: '—', to: `${product.code} - ${product.name} (كمية 1)` }],
+      });
+
       loadOrders();
     }
   };
@@ -366,7 +398,16 @@ const Orders = () => {
         subtotal: newSubtotal,
         total: newSubtotal - selectedOrder.deposit_amount - getDiscountAmount(selectedOrder, newSubtotal),
       }).eq('id', selectedOrder.id);
-      
+
+      if (itemToRemove) {
+        notifyTelegram({
+          type: 'order_edited',
+          orderNumber: selectedOrder.order_number,
+          customerName: selectedOrder.customer_name,
+          changes: [{ field: 'حذف منتج', from: `${itemToRemove.product_code} - ${itemToRemove.product_name} (كمية ${itemToRemove.quantity})`, to: '—' }],
+        });
+      }
+
       loadOrders();
     }
   };
@@ -407,7 +448,16 @@ const Orders = () => {
         subtotal: newSubtotal,
         total: newSubtotal - selectedOrder.deposit_amount - getDiscountAmount(selectedOrder, newSubtotal),
       }).eq('id', selectedOrder.id);
-      
+
+      if (quantityDiff !== 0) {
+        notifyTelegram({
+          type: 'order_edited',
+          orderNumber: selectedOrder.order_number,
+          customerName: selectedOrder.customer_name,
+          changes: [{ field: `كمية ${currentItem.product_code} - ${currentItem.product_name}`, from: currentItem.quantity, to: quantity }],
+        });
+      }
+
       loadOrders();
     }
   };

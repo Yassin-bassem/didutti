@@ -93,6 +93,31 @@ function buildOrderEditedMessage(p: any): string {
   }
   return m;
 }
+function buildOrderDeletedMessage(p: any): string {
+  let m = `🗑️ *تم حذف الطلب \\#${esc(p.orderNumber)}*\n\n`;
+  m += `👤 *العميل:* ${esc(p.customerName)}\n`;
+  if (p.shopName) m += `🏪 *المحل:* ${esc(p.shopName)}\n`;
+  if (p.phone) m += `📞 *الهاتف:* ${esc(p.phone)}\n`;
+  if (p.address) m += `📍 *العنوان:* ${esc(p.address)}\n`;
+  if (Array.isArray(p.items) && p.items.length > 0) {
+    m += `\n━━━━━━━━━━━━━━━━\n📦 *المنتجات المحذوفة:*\n\n`;
+    p.items.forEach((item: any, i: number) => {
+      m += `${i + 1}\\. ${esc(item.name)}\n`;
+      m += `   الكود: ${esc(item.code)}\n`;
+      m += `   الكمية: ${esc(item.quantity)}\n`;
+      m += `   السعر: ${esc(item.price)} ج\\.م\n\n`;
+    });
+    m += `━━━━━━━━━━━━━━━━\n`;
+  }
+  if (p.subtotal !== undefined) m += `💰 *الإجمالي:* ${esc(p.subtotal)} ج\\.م\n`;
+  if (p.depositAmount) {
+    const ml = p.depositMethod === 'instapay' ? 'InstaPay' : p.depositMethod === 'vodafone_cash' ? 'فودافون كاش' : 'كاش';
+    m += `💵 *العربون \\(${esc(ml)}\\):* ${esc(p.depositAmount)} ج\\.م\n`;
+  }
+  if (p.total !== undefined) m += `✅ *المطلوب:* ${esc(p.total)} ج\\.م\n`;
+  return m;
+}
+
 
 function buildDailySummaryMessage(p: any): string {
   let m = `📊 *الملخص اليومي* \\- ${esc(p.date)}\n\n`;
@@ -129,6 +154,7 @@ Deno.serve(async (req) => {
       case 'product_deleted': message = buildProductDeletedMessage(payload); break;
       case 'product_updated': message = buildProductUpdatedMessage(payload); break;
       case 'order_edited': message = buildOrderEditedMessage(payload); break;
+      case 'order_deleted': message = buildOrderDeletedMessage(payload); break;
       case 'daily_summary': message = buildDailySummaryMessage(payload); break;
       case 'order':
       default:
