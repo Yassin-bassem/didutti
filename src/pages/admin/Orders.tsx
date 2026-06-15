@@ -1048,6 +1048,36 @@ const Orders = () => {
                       }
 
                       toast.success('تم حفظ التعديلات');
+
+                      // Telegram diff notification
+                      if (originalOrder) {
+                        const labels: Record<string, string> = {
+                          customer_name: 'اسم العميل',
+                          phone: 'الهاتف',
+                          shop_name: 'المحل',
+                          address: 'العنوان',
+                          delivery_date: 'تاريخ التسليم',
+                          shipping_company: 'شركة الشحن',
+                          deposit_method: 'طريقة العربون',
+                          deposit_amount: 'مبلغ العربون',
+                          discount: 'الخصم',
+                          discount_type: 'نوع الخصم',
+                        };
+                        const changes = diffObjects(originalOrder as any, selectedOrder as any, labels);
+                        if (Math.abs((originalOrder as any).total - calcTotal) > 0.001) {
+                          changes.push({ field: 'الإجمالي المطلوب', from: (originalOrder as any).total, to: calcTotal });
+                        }
+                        if (changes.length > 0) {
+                          notifyTelegram({
+                            type: 'order_edited',
+                            orderNumber: selectedOrder.order_number,
+                            customerName: selectedOrder.customer_name,
+                            changes,
+                          });
+                          setOriginalOrder({ ...selectedOrder, total: calcTotal } as any);
+                        }
+                      }
+
                       loadOrders();
                     }
                   }}
