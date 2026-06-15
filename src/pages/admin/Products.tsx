@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import QRCode from 'qrcode';
 import { useVersion } from '@/contexts/VersionContext';
 import ProductImage from '@/components/ProductImage';
+import { notifyTelegram, diffObjects } from '@/lib/telegramNotify';
 
 interface Product {
   id: string;
