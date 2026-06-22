@@ -785,9 +785,20 @@ const Orders = () => {
                   </div>
                   <div className="flex items-center gap-4">
                     <div className="text-left">
-                      <Badge className={statusColors[order.status]}>{statusLabels[order.status]}</Badge>
+                      <select
+                        value={order.status}
+                        onChange={(e) => handleStatusChange(order, e.target.value)}
+                        onClick={(e) => e.stopPropagation()}
+                        className={`text-xs font-semibold rounded-full px-3 py-1 border-0 focus:ring-2 focus:ring-primary cursor-pointer ${statusColors[order.status] || 'bg-muted'}`}
+                        dir="rtl"
+                      >
+                        {Object.entries(statusLabels).map(([k, v]) => (
+                          <option key={k} value={k}>{v}</option>
+                        ))}
+                      </select>
                       <p className="text-lg font-bold text-primary mt-1">{order.total.toFixed(2)} ج.م</p>
                     </div>
+
                     <div className="flex gap-2 flex-wrap justify-end">
                       <Button size="sm" variant="outline" onClick={() => handleView(order)}>
                         <Eye className="h-4 w-4" />
