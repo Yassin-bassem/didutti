@@ -681,14 +681,22 @@ const Orders = () => {
     setTimeout(() => URL.revokeObjectURL(url), 60000);
   };
 
-  const filteredOrders = searchCode
-    ? orders.filter((o) => 
-        o.order_number.toString().includes(searchCode) ||
-        o.phone.includes(searchCode) ||
-        o.customer_name.toLowerCase().includes(searchCode.toLowerCase()) ||
-        (o.shop_name && o.shop_name.toLowerCase().includes(searchCode.toLowerCase()))
-      )
-    : orders;
+  const filteredOrders = orders.filter((o) => {
+    if (statusFilter !== 'all' && o.status !== statusFilter) return false;
+    if (!searchCode) return true;
+    return (
+      o.order_number.toString().includes(searchCode) ||
+      o.phone.includes(searchCode) ||
+      o.customer_name.toLowerCase().includes(searchCode.toLowerCase()) ||
+      (o.shop_name && o.shop_name.toLowerCase().includes(searchCode.toLowerCase()))
+    );
+  });
+
+  const statusCounts = orders.reduce<Record<string, number>>((acc, o) => {
+    acc[o.status] = (acc[o.status] || 0) + 1;
+    return acc;
+  }, {});
+
 
   if (!activeVersion) {
     return <div className="text-center py-12 text-muted-foreground">جاري التحميل...</div>;
