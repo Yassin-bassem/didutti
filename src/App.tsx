@@ -14,6 +14,7 @@ import Orders from "./pages/admin/Orders";
 import Customers from "./pages/admin/Customers";
 import Deposits from "./pages/admin/Deposits";
 import SearchByCode from "./pages/admin/SearchByCode";
+import PieceSale from "./pages/admin/PieceSale";
 import CustomerExtraInfo from "./pages/admin/CustomerExtraInfo";
 import ProductImages from "./pages/admin/ProductImages";
 import StockAlerts from "./pages/admin/StockAlerts";
@@ -43,6 +44,7 @@ const App = () => (
               <Route path="customers" element={<Customers />} />
               <Route path="deposits" element={<Deposits />} />
               <Route path="search-by-code" element={<SearchByCode />} />
+              <Route path="piece-sale" element={<PieceSale />} />
               <Route path="customer-extra-info" element={<CustomerExtraInfo />} />
               <Route path="product-images" element={<ProductImages />} />
               <Route path="stock-alerts" element={<StockAlerts />} />

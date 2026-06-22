@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link, Outlet, useLocation, Navigate } from 'react-router-dom';
-import { Package, ShoppingCart, Users, BarChart3, LogOut, Wallet, SearchCode, FileText, Menu, X, Bell, UserCog, Settings as SettingsIcon, TrendingDown, DatabaseBackup } from 'lucide-react';
+import { Package, ShoppingCart, Users, BarChart3, LogOut, Wallet, SearchCode, FileText, Menu, X, Bell, UserCog, Settings as SettingsIcon, TrendingDown, DatabaseBackup, Scissors } from 'lucide-react';
 import { buildBackupZip, downloadBlob, backupFilename, todayDateString } from '@/lib/backup';
 import { notifyTelegram } from '@/lib/telegramNotify';
 import { supabase } from '@/integrations/supabase/client';
@@ -25,6 +25,7 @@ const navItems: NavItem[] = [
   { path: '/admin/dashboard/customers', label: 'العملاء', icon: Users, permission: 'customers' },
   { path: '/admin/dashboard/deposits', label: 'العربون', icon: Wallet, permission: 'deposits' },
   { path: '/admin/dashboard/search-by-code', label: 'البحث بالكود', icon: SearchCode, permission: 'search-by-code' },
+  { path: '/admin/dashboard/piece-sale', label: 'بيع بالقطعة', icon: Scissors, permission: 'piece-sale' },
   { path: '/admin/dashboard/customer-extra-info', label: 'معلومات إضافية', icon: FileText, permission: 'customer-extra-info' },
   { path: '/admin/dashboard/stock-alerts', label: 'تنبيهات المخزون', icon: Bell, permission: 'stock-alerts' },
   { path: '/admin/dashboard/staff', label: 'الموظفين', icon: UserCog, permission: 'admin' },
