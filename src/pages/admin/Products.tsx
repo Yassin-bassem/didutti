@@ -137,9 +137,14 @@ const Products = () => {
     setLoading(false);
   };
 
-  const filteredProducts = searchCode
-    ? products.filter((p) => p.code.toLowerCase().includes(searchCode.toLowerCase()))
-    : products;
+  const filteredProducts = products.filter((p) => {
+    if (categoryFilter !== 'all') {
+      if (categoryFilter === 'none' && p.category_id) return false;
+      if (categoryFilter !== 'none' && p.category_id !== categoryFilter) return false;
+    }
+    if (searchCode && !p.code.toLowerCase().includes(searchCode.toLowerCase())) return false;
+    return true;
+  });
 
   const printFilteredProducts = printSearchCode
     ? products.filter((p) => 
@@ -587,15 +592,28 @@ const Products = () => {
         </div>
       </div>
 
-      <div className="relative max-w-md">
-        <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          placeholder="بحث بالكود..."
-          value={searchCode}
-          onChange={(e) => setSearchCode(e.target.value)}
-          className="pr-10"
-          dir="ltr"
-        />
+      <div className="flex flex-wrap gap-2 items-end">
+        <div className="relative max-w-md flex-1 min-w-[200px]">
+          <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="بحث بالكود..."
+            value={searchCode}
+            onChange={(e) => setSearchCode(e.target.value)}
+            className="pr-10"
+            dir="ltr"
+          />
+        </div>
+        <select
+          className="flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
+          value={categoryFilter}
+          onChange={(e) => setCategoryFilter(e.target.value)}
+        >
+          <option value="all">كل المصانع</option>
+          <option value="none">بدون مصنع</option>
+          {categories.map((c) => (
+            <option key={c.id} value={c.id}>{c.name}</option>
+          ))}
+        </select>
       </div>
 
       {loading ? (
@@ -734,6 +752,50 @@ const Products = () => {
                     <p className="text-sm text-muted-foreground">#{product.code}</p>
                   </div>
                   <p className="font-bold">{product.price} ج.م</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Categories (مصانع) Dialog */}
+      <Dialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>إدارة المصانع</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="flex gap-2">
+              <Input
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
+                placeholder="اسم المصنع"
+                onKeyDown={(e) => e.key === 'Enter' && handleSaveCategory()}
+              />
+              <Button onClick={handleSaveCategory}>
+                {editingCategory ? 'تحديث' : 'إضافة'}
+              </Button>
+              {editingCategory && (
+                <Button variant="outline" onClick={() => { setEditingCategory(null); setNewCategoryName(''); }}>
+                  إلغاء
+                </Button>
+              )}
+            </div>
+            <div className="max-h-72 overflow-y-auto border rounded-lg divide-y">
+              {categories.length === 0 ? (
+                <p className="p-4 text-center text-muted-foreground text-sm">لا توجد مصانع</p>
+              ) : categories.map((c) => (
+                <div key={c.id} className="flex items-center justify-between p-3">
+                  <span className="font-medium">{c.name}</span>
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="outline" onClick={() => { setEditingCategory(c); setNewCategoryName(c.name); }}>
+                      <Edit2 className="h-4 w-4" />
+                    </Button>
+                    <Button size="sm" variant="outline" className="text-destructive" onClick={() => handleDeleteCategory(c.id)}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
