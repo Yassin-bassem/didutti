@@ -708,15 +708,44 @@ const Orders = () => {
         <h1 className="text-2xl font-bold">الطلبات</h1>
       </div>
 
-      <div className="relative max-w-md">
-        <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          placeholder="بحث برقم الطلب أو الهاتف أو الاسم أو المحل..."
-          value={searchCode}
-          onChange={(e) => setSearchCode(e.target.value)}
-          className="pr-10"
-        />
+      <div className="flex flex-col md:flex-row md:items-center gap-3">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="بحث برقم الطلب أو الهاتف أو الاسم أو المحل..."
+            value={searchCode}
+            onChange={(e) => setSearchCode(e.target.value)}
+            className="pr-10"
+          />
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {[
+            { key: 'all', label: 'الكل' },
+            { key: 'pending', label: statusLabels.pending },
+            { key: 'confirmed', label: statusLabels.confirmed },
+            { key: 'shipped', label: statusLabels.shipped },
+            { key: 'delivered', label: statusLabels.delivered },
+            { key: 'cancelled', label: statusLabels.cancelled },
+          ].map((s) => {
+            const count = s.key === 'all' ? orders.length : (statusCounts[s.key] || 0);
+            const active = statusFilter === s.key;
+            return (
+              <button
+                key={s.key}
+                onClick={() => setStatusFilter(s.key)}
+                className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${
+                  active
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'bg-background border-border hover:bg-muted'
+                }`}
+              >
+                {s.label} <span className="opacity-70">({count})</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
+
 
       {loading ? (
         <div className="text-center py-12 text-muted-foreground">جاري التحميل...</div>
