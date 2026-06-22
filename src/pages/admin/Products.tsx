@@ -215,6 +215,7 @@ const Products = () => {
       price: product.price,
       stock_quantity: product.stock_quantity,
       low_stock_threshold: product.low_stock_threshold,
+      category_id: product.category_id || '',
     });
     setThreeCount(parseThreeCount(product.description || ''));
     setDialogOpen(true);
@@ -468,6 +469,7 @@ const Products = () => {
       price: 0,
       stock_quantity: 0,
       low_stock_threshold: 10,
+      category_id: '',
     });
     setThreeCount(0);
   };
