@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Plus, Edit2, Trash2, QrCode, Search, Package, Printer, CheckSquare, Square } from 'lucide-react';
+import { Plus, Edit2, Trash2, QrCode, Search, Package, Printer, CheckSquare, Square, Factory } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -21,6 +21,12 @@ interface Product {
   stock_quantity: number;
   low_stock_threshold: number;
   image_url: string | null;
+  category_id?: string | null;
+}
+
+interface Category {
+  id: string;
+  name: string;
 }
 
 // XPrinter XP-370B dimensions in mm (1.57" x 0.79" with 0.05" margins)
@@ -49,8 +55,16 @@ const Products = () => {
     price: 0,
     stock_quantity: 0,
     low_stock_threshold: 10,
+    category_id: '' as string,
   });
   const [threeCount, setThreeCount] = useState<number>(0);
+
+  // Categories (مصانع)
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
 
   // Parse multiplier from description like "200/20" -> 20
   const parseThreeCount = (desc: string): number => {
@@ -62,8 +76,49 @@ const Products = () => {
   useEffect(() => {
     if (activeVersion) {
       loadProducts();
+      loadCategories();
     }
   }, [activeVersion]);
+
+  const loadCategories = async () => {
+    if (!activeVersion) return;
+    const { data } = await (supabase as any)
+      .from('categories')
+      .select('id, name')
+      .eq('version_id', activeVersion.id)
+      .order('name', { ascending: true });
+    setCategories(data || []);
+  };
+
+  const handleSaveCategory = async () => {
+    if (!activeVersion || !newCategoryName.trim()) return;
+    if (editingCategory) {
+      const { error } = await (supabase as any)
+        .from('categories')
+        .update({ name: newCategoryName.trim() })
+        .eq('id', editingCategory.id);
+      if (error) return toast.error('فشل في تحديث المصنع');
+      toast.success('تم تحديث المصنع');
+    } else {
+      const { error } = await (supabase as any)
+        .from('categories')
+        .insert({ name: newCategoryName.trim(), version_id: activeVersion.id });
+      if (error) return toast.error('فشل في إضافة المصنع');
+      toast.success('تم إضافة المصنع');
+    }
+    setNewCategoryName('');
+    setEditingCategory(null);
+    loadCategories();
+  };
+
+  const handleDeleteCategory = async (id: string) => {
+    if (!confirm('حذف هذا المصنع؟ (المنتجات لن تُحذف)')) return;
+    const { error } = await (supabase as any).from('categories').delete().eq('id', id);
+    if (error) return toast.error('فشل في الحذف');
+    toast.success('تم الحذف');
+    loadCategories();
+    loadProducts();
+  };
 
   const loadProducts = async () => {
     if (!activeVersion) return;
@@ -105,6 +160,7 @@ const Products = () => {
       // If عدد الثري is set, override description with `${price}/${threeCount}` format
       const payload = {
         ...formData,
+        category_id: formData.category_id || null,
         description: threeCount > 0
           ? `${formData.price}/${threeCount}`
           : formData.description,
