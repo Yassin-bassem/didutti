@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Eye, Edit2, Trash2, FileText, Search, ShoppingCart, Plus, Copy } from 'lucide-react';
+import { Eye, Edit2, Trash2, FileText, Search, ShoppingCart, Plus, Copy, Gift } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -41,6 +41,7 @@ interface Order {
   extra_info: string | null;
   staff_member_id: string | null;
   staff_member_name: string | null;
+  order_type?: string | null;
   items?: OrderItem[];
 }
 
@@ -58,6 +59,17 @@ const statusColors: Record<string, string> = {
   shipped: 'bg-purple-100 text-purple-800',
   delivered: 'bg-green-100 text-green-800',
   cancelled: 'bg-red-100 text-red-800',
+};
+const orderTypeCardClass = (t?: string | null): string => {
+  if (t === 'gift') return 'bg-pink-50 border-pink-200';
+  if (t === 'piece') return 'bg-blue-50 border-blue-200';
+  return '';
+};
+
+const orderTypeLabel = (t?: string | null): { label: string; cls: string } | null => {
+  if (t === 'gift') return { label: '🎁 هدية', cls: 'bg-pink-100 text-pink-800' };
+  if (t === 'piece') return { label: '✂️ بيع بالقطعة', cls: 'bg-blue-100 text-blue-800' };
+  return null;
 };
 
 // Helper to get description multiplier (e.g., "250/10" => 10)
@@ -308,6 +320,44 @@ const Orders = () => {
     }
   };
 
+  const handleMakeGift = async (order: Order) => {
+    if (order.order_type === 'gift') {
+      if (!confirm('هذا الطلب هدية بالفعل. هل تريد إعادته إلى طلب عادي؟')) return;
+      const { error } = await (supabase as any)
+        .from('orders')
+        .update({ order_type: 'normal' })
+        .eq('id', order.id);
+      if (error) return toast.error('فشل في التحديث');
+      toast.success('تم إرجاع الطلب لطلب عادي');
+      loadOrders();
+      return;
+    }
+    if (!confirm('تحويل هذا الطلب إلى هدية؟ سيتم تصفير الإجمالي والعربون.')) return;
+    const { error } = await (supabase as any)
+      .from('orders')
+      .update({
+        order_type: 'gift',
+        subtotal: 0,
+        total: 0,
+        deposit_amount: 0,
+        deposit_method: null,
+        discount: 0,
+      })
+      .eq('id', order.id);
+    if (error) return toast.error('فشل في تحويل الطلب');
+    await supabase.from('deposits').delete().eq('order_id', order.id);
+    toast.success('تم تحويل الطلب إلى هدية 🎁');
+    notifyTelegram({
+      type: 'order_edited',
+      orderNumber: order.order_number,
+      customerName: order.customer_name,
+      changes: [{ field: 'نوع الطلب', from: 'عادي', to: 'هدية 🎁 (الإجمالي = 0)' }],
+    });
+    loadOrders();
+  };
+
+
+
   const handleAddProductToOrder = async () => {
     if (!selectedOrder || !addProductCode.trim() || !activeVersion) return;
 
@@ -516,6 +566,8 @@ const Orders = () => {
           ${logoBase64 ? `<img src="${logoBase64}" alt="DIDUTTI KID'S Logo" />` : ''}
           <h1>DIDUTTI KID'S</h1>
           <h2>فاتورة رقم ${order.order_number}</h2>
+          ${order.order_type === 'gift' ? `<div style="display:inline-block;margin-top:8px;padding:8px 18px;background:#fce7f3;color:#9d174d;border:2px dashed #ec4899;border-radius:8px;font-size:1.2em;font-weight:bold;">🎁 هذه الفاتورة هدية</div>` : ''}
+          ${order.order_type === 'piece' ? `<div style="display:inline-block;margin-top:8px;padding:6px 14px;background:#dbeafe;color:#1e40af;border-radius:8px;font-weight:bold;">✂️ بيع بالقطعة</div>` : ''}
         </div>
         <div class="info">
           <p><strong>العميل:</strong> ${order.customer_name}</p>
@@ -557,10 +609,16 @@ const Orders = () => {
           </tbody>
         </table>
         <div class="totals">
-          <p>الإجمالي الفرعي: ${calculatedSubtotal.toFixed(2)} ج.م</p>
-          ${orderDiscount > 0 ? `<p>الخصم${order.discount_type === 'percent' ? ` (${order.discount}%)` : ''}: -${orderDiscount.toFixed(2)} ج.م</p>` : ''}
-          ${order.deposit_amount > 0 ? `<p>العربون (${order.deposit_method}): -${order.deposit_amount.toFixed(2)} ج.م</p>` : ''}
-          <p class="total">المطلوب: ${calculatedTotal.toFixed(2)} ج.م</p>
+          ${order.order_type === 'gift' ? `
+            <p>الإجمالي الفرعي: ${calculatedSubtotal.toFixed(2)} ج.م</p>
+            <p style="color:#9d174d;font-weight:bold;">خصم الهدية: -${calculatedSubtotal.toFixed(2)} ج.م</p>
+            <p class="total" style="color:#9d174d;">المطلوب: 0.00 ج.م 🎁 (هدية)</p>
+          ` : `
+            <p>الإجمالي الفرعي: ${calculatedSubtotal.toFixed(2)} ج.م</p>
+            ${orderDiscount > 0 ? `<p>الخصم${order.discount_type === 'percent' ? ` (${order.discount}%)` : ''}: -${orderDiscount.toFixed(2)} ج.م</p>` : ''}
+            ${order.deposit_amount > 0 ? `<p>العربون (${order.deposit_method}): -${order.deposit_amount.toFixed(2)} ج.م</p>` : ''}
+            <p class="total">المطلوب: ${calculatedTotal.toFixed(2)} ج.م</p>
+          `}
         </div>
       </body>
       </html>
@@ -641,8 +699,10 @@ const Orders = () => {
         </Card>
       ) : (
         <div className="space-y-4">
-          {filteredOrders.map((order) => (
-            <Card key={order.id} className="hover:shadow-baby transition-shadow">
+          {filteredOrders.map((order) => {
+            const typeBadge = orderTypeLabel(order.order_type);
+            return (
+            <Card key={order.id} className={`hover:shadow-baby transition-shadow ${orderTypeCardClass(order.order_type)}`}>
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
@@ -650,15 +710,18 @@ const Orders = () => {
                     <div>
                       <p className="font-bold">{order.customer_name}</p>
                       <p className="text-sm text-muted-foreground">{order.phone}</p>
-                      {order.staff_member_name ? (
-                        <Badge className="bg-purple-100 text-purple-800 mt-1">
-                          👷 موظف: {order.staff_member_name}
-                        </Badge>
-                      ) : (
-                        <Badge className="bg-blue-100 text-blue-800 mt-1">
-                          👤 عميل
-                        </Badge>
-                      )}
+                      <div className="flex gap-1 flex-wrap mt-1">
+                        {order.staff_member_name ? (
+                          <Badge className="bg-purple-100 text-purple-800">
+                            👷 موظف: {order.staff_member_name}
+                          </Badge>
+                        ) : (
+                          <Badge className="bg-blue-100 text-blue-800">
+                            👤 عميل
+                          </Badge>
+                        )}
+                        {typeBadge && <Badge className={typeBadge.cls}>{typeBadge.label}</Badge>}
+                      </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
@@ -666,7 +729,7 @@ const Orders = () => {
                       <Badge className={statusColors[order.status]}>{statusLabels[order.status]}</Badge>
                       <p className="text-lg font-bold text-primary mt-1">{order.total.toFixed(2)} ج.م</p>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 flex-wrap justify-end">
                       <Button size="sm" variant="outline" onClick={() => handleView(order)}>
                         <Eye className="h-4 w-4" />
                       </Button>
@@ -675,6 +738,15 @@ const Orders = () => {
                       </Button>
                       <Button size="sm" variant="outline" onClick={() => handleDuplicate(order)} title="نسخ الطلب">
                         <Copy className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className={order.order_type === 'gift' ? 'bg-pink-100 text-pink-700' : 'text-pink-600'}
+                        onClick={() => handleMakeGift(order)}
+                        title={order.order_type === 'gift' ? 'إلغاء الهدية' : 'تحويل إلى هدية'}
+                      >
+                        <Gift className="h-4 w-4" />
                       </Button>
                       <Button size="sm" variant="outline" onClick={async () => {
                         const items = await loadOrderItems(order.id);
@@ -690,7 +762,8 @@ const Orders = () => {
                 </div>
               </CardContent>
             </Card>
-          ))}
+            );
+          })}
         </div>
       )}
 

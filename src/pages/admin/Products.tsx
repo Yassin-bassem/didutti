@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Plus, Edit2, Trash2, QrCode, Search, Package, Printer, CheckSquare, Square } from 'lucide-react';
+import { Plus, Edit2, Trash2, QrCode, Search, Package, Printer, CheckSquare, Square, Factory } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -21,6 +21,12 @@ interface Product {
   stock_quantity: number;
   low_stock_threshold: number;
   image_url: string | null;
+  category_id?: string | null;
+}
+
+interface Category {
+  id: string;
+  name: string;
 }
 
 // XPrinter XP-370B dimensions in mm (1.57" x 0.79" with 0.05" margins)
@@ -49,8 +55,16 @@ const Products = () => {
     price: 0,
     stock_quantity: 0,
     low_stock_threshold: 10,
+    category_id: '' as string,
   });
   const [threeCount, setThreeCount] = useState<number>(0);
+
+  // Categories (مصانع)
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
 
   // Parse multiplier from description like "200/20" -> 20
   const parseThreeCount = (desc: string): number => {
@@ -62,8 +76,49 @@ const Products = () => {
   useEffect(() => {
     if (activeVersion) {
       loadProducts();
+      loadCategories();
     }
   }, [activeVersion]);
+
+  const loadCategories = async () => {
+    if (!activeVersion) return;
+    const { data } = await (supabase as any)
+      .from('categories')
+      .select('id, name')
+      .eq('version_id', activeVersion.id)
+      .order('name', { ascending: true });
+    setCategories(data || []);
+  };
+
+  const handleSaveCategory = async () => {
+    if (!activeVersion || !newCategoryName.trim()) return;
+    if (editingCategory) {
+      const { error } = await (supabase as any)
+        .from('categories')
+        .update({ name: newCategoryName.trim() })
+        .eq('id', editingCategory.id);
+      if (error) return toast.error('فشل في تحديث المصنع');
+      toast.success('تم تحديث المصنع');
+    } else {
+      const { error } = await (supabase as any)
+        .from('categories')
+        .insert({ name: newCategoryName.trim(), version_id: activeVersion.id });
+      if (error) return toast.error('فشل في إضافة المصنع');
+      toast.success('تم إضافة المصنع');
+    }
+    setNewCategoryName('');
+    setEditingCategory(null);
+    loadCategories();
+  };
+
+  const handleDeleteCategory = async (id: string) => {
+    if (!confirm('حذف هذا المصنع؟ (المنتجات لن تُحذف)')) return;
+    const { error } = await (supabase as any).from('categories').delete().eq('id', id);
+    if (error) return toast.error('فشل في الحذف');
+    toast.success('تم الحذف');
+    loadCategories();
+    loadProducts();
+  };
 
   const loadProducts = async () => {
     if (!activeVersion) return;
@@ -82,9 +137,14 @@ const Products = () => {
     setLoading(false);
   };
 
-  const filteredProducts = searchCode
-    ? products.filter((p) => p.code.toLowerCase().includes(searchCode.toLowerCase()))
-    : products;
+  const filteredProducts = products.filter((p) => {
+    if (categoryFilter !== 'all') {
+      if (categoryFilter === 'none' && p.category_id) return false;
+      if (categoryFilter !== 'none' && p.category_id !== categoryFilter) return false;
+    }
+    if (searchCode && !p.code.toLowerCase().includes(searchCode.toLowerCase())) return false;
+    return true;
+  });
 
   const printFilteredProducts = printSearchCode
     ? products.filter((p) => 
@@ -105,6 +165,7 @@ const Products = () => {
       // If عدد الثري is set, override description with `${price}/${threeCount}` format
       const payload = {
         ...formData,
+        category_id: formData.category_id || null,
         description: threeCount > 0
           ? `${formData.price}/${threeCount}`
           : formData.description,
@@ -159,6 +220,7 @@ const Products = () => {
       price: product.price,
       stock_quantity: product.stock_quantity,
       low_stock_threshold: product.low_stock_threshold,
+      category_id: product.category_id || '',
     });
     setThreeCount(parseThreeCount(product.description || ''));
     setDialogOpen(true);
@@ -412,6 +474,7 @@ const Products = () => {
       price: 0,
       stock_quantity: 0,
       low_stock_threshold: 10,
+      category_id: '',
     });
     setThreeCount(0);
   };
@@ -424,7 +487,11 @@ const Products = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <h1 className="text-2xl font-bold">المنتجات</h1>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
+          <Button variant="outline" className="gap-2" onClick={() => { setEditingCategory(null); setNewCategoryName(''); setCategoryDialogOpen(true); }}>
+            <Factory className="h-4 w-4" />
+            مصانع
+          </Button>
           <Button variant="outline" className="gap-2" onClick={() => setPrintDialogOpen(true)}>
             <Printer className="h-4 w-4" />
             طباعة الباركود
@@ -503,6 +570,19 @@ const Products = () => {
                     />
                   </div>
                 </div>
+                <div>
+                  <Label>المصنع (اختياري)</Label>
+                  <select
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    value={formData.category_id}
+                    onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
+                  >
+                    <option value="">بدون مصنع</option>
+                    {categories.map((c) => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </select>
+                </div>
                 <Button type="submit" className="w-full">
                   {editingProduct ? 'تحديث' : 'إضافة'}
                 </Button>
@@ -512,15 +592,28 @@ const Products = () => {
         </div>
       </div>
 
-      <div className="relative max-w-md">
-        <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          placeholder="بحث بالكود..."
-          value={searchCode}
-          onChange={(e) => setSearchCode(e.target.value)}
-          className="pr-10"
-          dir="ltr"
-        />
+      <div className="flex flex-wrap gap-2 items-end">
+        <div className="relative max-w-md flex-1 min-w-[200px]">
+          <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="بحث بالكود..."
+            value={searchCode}
+            onChange={(e) => setSearchCode(e.target.value)}
+            className="pr-10"
+            dir="ltr"
+          />
+        </div>
+        <select
+          className="flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
+          value={categoryFilter}
+          onChange={(e) => setCategoryFilter(e.target.value)}
+        >
+          <option value="all">كل المصانع</option>
+          <option value="none">بدون مصنع</option>
+          {categories.map((c) => (
+            <option key={c.id} value={c.id}>{c.name}</option>
+          ))}
+        </select>
       </div>
 
       {loading ? (
@@ -659,6 +752,50 @@ const Products = () => {
                     <p className="text-sm text-muted-foreground">#{product.code}</p>
                   </div>
                   <p className="font-bold">{product.price} ج.م</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Categories (مصانع) Dialog */}
+      <Dialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>إدارة المصانع</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="flex gap-2">
+              <Input
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
+                placeholder="اسم المصنع"
+                onKeyDown={(e) => e.key === 'Enter' && handleSaveCategory()}
+              />
+              <Button onClick={handleSaveCategory}>
+                {editingCategory ? 'تحديث' : 'إضافة'}
+              </Button>
+              {editingCategory && (
+                <Button variant="outline" onClick={() => { setEditingCategory(null); setNewCategoryName(''); }}>
+                  إلغاء
+                </Button>
+              )}
+            </div>
+            <div className="max-h-72 overflow-y-auto border rounded-lg divide-y">
+              {categories.length === 0 ? (
+                <p className="p-4 text-center text-muted-foreground text-sm">لا توجد مصانع</p>
+              ) : categories.map((c) => (
+                <div key={c.id} className="flex items-center justify-between p-3">
+                  <span className="font-medium">{c.name}</span>
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="outline" onClick={() => { setEditingCategory(c); setNewCategoryName(c.name); }}>
+                      <Edit2 className="h-4 w-4" />
+                    </Button>
+                    <Button size="sm" variant="outline" className="text-destructive" onClick={() => handleDeleteCategory(c.id)}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>

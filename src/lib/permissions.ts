@@ -6,7 +6,8 @@ export type PermissionKey =
   | 'search-by-code'
   | 'customer-extra-info'
   | 'product-images'
-  | 'stock-alerts';
+  | 'stock-alerts'
+  | 'piece-sale';
 
 export const PERMISSION_LABELS: Record<PermissionKey, string> = {
   products: 'المنتجات',
@@ -17,6 +18,7 @@ export const PERMISSION_LABELS: Record<PermissionKey, string> = {
   'customer-extra-info': 'معلومات إضافية',
   'product-images': 'صور المنتجات',
   'stock-alerts': 'تنبيهات المخزون',
+  'piece-sale': 'بيع بالقطعة',
 };
 
 export const ALL_PERMISSIONS = Object.keys(PERMISSION_LABELS) as PermissionKey[];
