@@ -566,6 +566,8 @@ const Orders = () => {
           ${logoBase64 ? `<img src="${logoBase64}" alt="DIDUTTI KID'S Logo" />` : ''}
           <h1>DIDUTTI KID'S</h1>
           <h2>فاتورة رقم ${order.order_number}</h2>
+          ${order.order_type === 'gift' ? `<div style="display:inline-block;margin-top:8px;padding:8px 18px;background:#fce7f3;color:#9d174d;border:2px dashed #ec4899;border-radius:8px;font-size:1.2em;font-weight:bold;">🎁 هذه الفاتورة هدية</div>` : ''}
+          ${order.order_type === 'piece' ? `<div style="display:inline-block;margin-top:8px;padding:6px 14px;background:#dbeafe;color:#1e40af;border-radius:8px;font-weight:bold;">✂️ بيع بالقطعة</div>` : ''}
         </div>
         <div class="info">
           <p><strong>العميل:</strong> ${order.customer_name}</p>
@@ -607,10 +609,16 @@ const Orders = () => {
           </tbody>
         </table>
         <div class="totals">
-          <p>الإجمالي الفرعي: ${calculatedSubtotal.toFixed(2)} ج.م</p>
-          ${orderDiscount > 0 ? `<p>الخصم${order.discount_type === 'percent' ? ` (${order.discount}%)` : ''}: -${orderDiscount.toFixed(2)} ج.م</p>` : ''}
-          ${order.deposit_amount > 0 ? `<p>العربون (${order.deposit_method}): -${order.deposit_amount.toFixed(2)} ج.م</p>` : ''}
-          <p class="total">المطلوب: ${calculatedTotal.toFixed(2)} ج.م</p>
+          ${order.order_type === 'gift' ? `
+            <p>الإجمالي الفرعي: ${calculatedSubtotal.toFixed(2)} ج.م</p>
+            <p style="color:#9d174d;font-weight:bold;">خصم الهدية: -${calculatedSubtotal.toFixed(2)} ج.م</p>
+            <p class="total" style="color:#9d174d;">المطلوب: 0.00 ج.م 🎁 (هدية)</p>
+          ` : `
+            <p>الإجمالي الفرعي: ${calculatedSubtotal.toFixed(2)} ج.م</p>
+            ${orderDiscount > 0 ? `<p>الخصم${order.discount_type === 'percent' ? ` (${order.discount}%)` : ''}: -${orderDiscount.toFixed(2)} ج.م</p>` : ''}
+            ${order.deposit_amount > 0 ? `<p>العربون (${order.deposit_method}): -${order.deposit_amount.toFixed(2)} ج.م</p>` : ''}
+            <p class="total">المطلوب: ${calculatedTotal.toFixed(2)} ج.م</p>
+          `}
         </div>
       </body>
       </html>
