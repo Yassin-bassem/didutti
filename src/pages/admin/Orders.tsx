@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Eye, Edit2, Trash2, FileText, Search, ShoppingCart, Plus, Copy } from 'lucide-react';
+import { Eye, Edit2, Trash2, FileText, Search, ShoppingCart, Plus, Copy, Gift } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -41,6 +41,7 @@ interface Order {
   extra_info: string | null;
   staff_member_id: string | null;
   staff_member_name: string | null;
+  order_type?: string | null;
   items?: OrderItem[];
 }
 
@@ -58,6 +59,17 @@ const statusColors: Record<string, string> = {
   shipped: 'bg-purple-100 text-purple-800',
   delivered: 'bg-green-100 text-green-800',
   cancelled: 'bg-red-100 text-red-800',
+};
+const orderTypeCardClass = (t?: string | null): string => {
+  if (t === 'gift') return 'bg-pink-50 border-pink-200';
+  if (t === 'piece') return 'bg-blue-50 border-blue-200';
+  return '';
+};
+
+const orderTypeLabel = (t?: string | null): { label: string; cls: string } | null => {
+  if (t === 'gift') return { label: '🎁 هدية', cls: 'bg-pink-100 text-pink-800' };
+  if (t === 'piece') return { label: '✂️ بيع بالقطعة', cls: 'bg-blue-100 text-blue-800' };
+  return null;
 };
 
 // Helper to get description multiplier (e.g., "250/10" => 10)
