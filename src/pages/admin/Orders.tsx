@@ -357,6 +357,27 @@ const Orders = () => {
     loadOrders();
   };
 
+  const handleStatusChange = async (order: Order, newStatus: string) => {
+    if (newStatus === order.status) return;
+    const { error } = await supabase
+      .from('orders')
+      .update({ status: newStatus })
+      .eq('id', order.id);
+    if (error) {
+      toast.error('فشل في تحديث الحالة');
+      return;
+    }
+    toast.success(`تم تحديث الحالة إلى: ${statusLabels[newStatus] || newStatus}`);
+    notifyTelegram({
+      type: 'order_edited',
+      orderNumber: order.order_number,
+      customerName: order.customer_name,
+      changes: [{ field: 'الحالة', from: statusLabels[order.status] || order.status, to: statusLabels[newStatus] || newStatus }],
+    });
+    loadOrders();
+  };
+
+
 
 
   const handleAddProductToOrder = async () => {
