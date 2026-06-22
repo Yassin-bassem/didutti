@@ -320,6 +320,44 @@ const Orders = () => {
     }
   };
 
+  const handleMakeGift = async (order: Order) => {
+    if (order.order_type === 'gift') {
+      if (!confirm('هذا الطلب هدية بالفعل. هل تريد إعادته إلى طلب عادي؟')) return;
+      const { error } = await (supabase as any)
+        .from('orders')
+        .update({ order_type: 'normal' })
+        .eq('id', order.id);
+      if (error) return toast.error('فشل في التحديث');
+      toast.success('تم إرجاع الطلب لطلب عادي');
+      loadOrders();
+      return;
+    }
+    if (!confirm('تحويل هذا الطلب إلى هدية؟ سيتم تصفير الإجمالي والعربون.')) return;
+    const { error } = await (supabase as any)
+      .from('orders')
+      .update({
+        order_type: 'gift',
+        subtotal: 0,
+        total: 0,
+        deposit_amount: 0,
+        deposit_method: null,
+        discount: 0,
+      })
+      .eq('id', order.id);
+    if (error) return toast.error('فشل في تحويل الطلب');
+    await supabase.from('deposits').delete().eq('order_id', order.id);
+    toast.success('تم تحويل الطلب إلى هدية 🎁');
+    notifyTelegram({
+      type: 'order_edited',
+      orderNumber: order.order_number,
+      customerName: order.customer_name,
+      changes: [{ field: 'نوع الطلب', from: 'عادي', to: 'هدية 🎁 (الإجمالي = 0)' }],
+    });
+    loadOrders();
+  };
+
+
+
   const handleAddProductToOrder = async () => {
     if (!selectedOrder || !addProductCode.trim() || !activeVersion) return;
 
@@ -653,8 +691,10 @@ const Orders = () => {
         </Card>
       ) : (
         <div className="space-y-4">
-          {filteredOrders.map((order) => (
-            <Card key={order.id} className="hover:shadow-baby transition-shadow">
+          {filteredOrders.map((order) => {
+            const typeBadge = orderTypeLabel(order.order_type);
+            return (
+            <Card key={order.id} className={`hover:shadow-baby transition-shadow ${orderTypeCardClass(order.order_type)}`}>
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
@@ -662,15 +702,18 @@ const Orders = () => {
                     <div>
                       <p className="font-bold">{order.customer_name}</p>
                       <p className="text-sm text-muted-foreground">{order.phone}</p>
-                      {order.staff_member_name ? (
-                        <Badge className="bg-purple-100 text-purple-800 mt-1">
-                          👷 موظف: {order.staff_member_name}
-                        </Badge>
-                      ) : (
-                        <Badge className="bg-blue-100 text-blue-800 mt-1">
-                          👤 عميل
-                        </Badge>
-                      )}
+                      <div className="flex gap-1 flex-wrap mt-1">
+                        {order.staff_member_name ? (
+                          <Badge className="bg-purple-100 text-purple-800">
+                            👷 موظف: {order.staff_member_name}
+                          </Badge>
+                        ) : (
+                          <Badge className="bg-blue-100 text-blue-800">
+                            👤 عميل
+                          </Badge>
+                        )}
+                        {typeBadge && <Badge className={typeBadge.cls}>{typeBadge.label}</Badge>}
+                      </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
@@ -678,7 +721,7 @@ const Orders = () => {
                       <Badge className={statusColors[order.status]}>{statusLabels[order.status]}</Badge>
                       <p className="text-lg font-bold text-primary mt-1">{order.total.toFixed(2)} ج.م</p>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 flex-wrap justify-end">
                       <Button size="sm" variant="outline" onClick={() => handleView(order)}>
                         <Eye className="h-4 w-4" />
                       </Button>
@@ -687,6 +730,15 @@ const Orders = () => {
                       </Button>
                       <Button size="sm" variant="outline" onClick={() => handleDuplicate(order)} title="نسخ الطلب">
                         <Copy className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className={order.order_type === 'gift' ? 'bg-pink-100 text-pink-700' : 'text-pink-600'}
+                        onClick={() => handleMakeGift(order)}
+                        title={order.order_type === 'gift' ? 'إلغاء الهدية' : 'تحويل إلى هدية'}
+                      >
+                        <Gift className="h-4 w-4" />
                       </Button>
                       <Button size="sm" variant="outline" onClick={async () => {
                         const items = await loadOrderItems(order.id);
@@ -702,7 +754,8 @@ const Orders = () => {
                 </div>
               </CardContent>
             </Card>
-          ))}
+            );
+          })}
         </div>
       )}
 
