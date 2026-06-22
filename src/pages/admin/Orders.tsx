@@ -108,6 +108,7 @@ const Orders = () => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [duplicateDialogOpen, setDuplicateDialogOpen] = useState(false);
   const [searchCode, setSearchCode] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
   const [addProductCode, setAddProductCode] = useState('');
   const [duplicateCustomer, setDuplicateCustomer] = useState({
     customer_name: '',
@@ -355,6 +356,27 @@ const Orders = () => {
     });
     loadOrders();
   };
+
+  const handleStatusChange = async (order: Order, newStatus: string) => {
+    if (newStatus === order.status) return;
+    const { error } = await supabase
+      .from('orders')
+      .update({ status: newStatus })
+      .eq('id', order.id);
+    if (error) {
+      toast.error('فشل في تحديث الحالة');
+      return;
+    }
+    toast.success(`تم تحديث الحالة إلى: ${statusLabels[newStatus] || newStatus}`);
+    notifyTelegram({
+      type: 'order_edited',
+      orderNumber: order.order_number,
+      customerName: order.customer_name,
+      changes: [{ field: 'الحالة', from: statusLabels[order.status] || order.status, to: statusLabels[newStatus] || newStatus }],
+    });
+    loadOrders();
+  };
+
 
 
 
@@ -659,14 +681,22 @@ const Orders = () => {
     setTimeout(() => URL.revokeObjectURL(url), 60000);
   };
 
-  const filteredOrders = searchCode
-    ? orders.filter((o) => 
-        o.order_number.toString().includes(searchCode) ||
-        o.phone.includes(searchCode) ||
-        o.customer_name.toLowerCase().includes(searchCode.toLowerCase()) ||
-        (o.shop_name && o.shop_name.toLowerCase().includes(searchCode.toLowerCase()))
-      )
-    : orders;
+  const filteredOrders = orders.filter((o) => {
+    if (statusFilter !== 'all' && o.status !== statusFilter) return false;
+    if (!searchCode) return true;
+    return (
+      o.order_number.toString().includes(searchCode) ||
+      o.phone.includes(searchCode) ||
+      o.customer_name.toLowerCase().includes(searchCode.toLowerCase()) ||
+      (o.shop_name && o.shop_name.toLowerCase().includes(searchCode.toLowerCase()))
+    );
+  });
+
+  const statusCounts = orders.reduce<Record<string, number>>((acc, o) => {
+    acc[o.status] = (acc[o.status] || 0) + 1;
+    return acc;
+  }, {});
+
 
   if (!activeVersion) {
     return <div className="text-center py-12 text-muted-foreground">جاري التحميل...</div>;
@@ -678,15 +708,44 @@ const Orders = () => {
         <h1 className="text-2xl font-bold">الطلبات</h1>
       </div>
 
-      <div className="relative max-w-md">
-        <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          placeholder="بحث برقم الطلب أو الهاتف أو الاسم أو المحل..."
-          value={searchCode}
-          onChange={(e) => setSearchCode(e.target.value)}
-          className="pr-10"
-        />
+      <div className="flex flex-col md:flex-row md:items-center gap-3">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="بحث برقم الطلب أو الهاتف أو الاسم أو المحل..."
+            value={searchCode}
+            onChange={(e) => setSearchCode(e.target.value)}
+            className="pr-10"
+          />
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {[
+            { key: 'all', label: 'الكل' },
+            { key: 'pending', label: statusLabels.pending },
+            { key: 'confirmed', label: statusLabels.confirmed },
+            { key: 'shipped', label: statusLabels.shipped },
+            { key: 'delivered', label: statusLabels.delivered },
+            { key: 'cancelled', label: statusLabels.cancelled },
+          ].map((s) => {
+            const count = s.key === 'all' ? orders.length : (statusCounts[s.key] || 0);
+            const active = statusFilter === s.key;
+            return (
+              <button
+                key={s.key}
+                onClick={() => setStatusFilter(s.key)}
+                className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${
+                  active
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'bg-background border-border hover:bg-muted'
+                }`}
+              >
+                {s.label} <span className="opacity-70">({count})</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
+
 
       {loading ? (
         <div className="text-center py-12 text-muted-foreground">جاري التحميل...</div>
@@ -726,9 +785,20 @@ const Orders = () => {
                   </div>
                   <div className="flex items-center gap-4">
                     <div className="text-left">
-                      <Badge className={statusColors[order.status]}>{statusLabels[order.status]}</Badge>
+                      <select
+                        value={order.status}
+                        onChange={(e) => handleStatusChange(order, e.target.value)}
+                        onClick={(e) => e.stopPropagation()}
+                        className={`text-xs font-semibold rounded-full px-3 py-1 border-0 focus:ring-2 focus:ring-primary cursor-pointer ${statusColors[order.status] || 'bg-muted'}`}
+                        dir="rtl"
+                      >
+                        {Object.entries(statusLabels).map(([k, v]) => (
+                          <option key={k} value={k}>{v}</option>
+                        ))}
+                      </select>
                       <p className="text-lg font-bold text-primary mt-1">{order.total.toFixed(2)} ج.م</p>
                     </div>
+
                     <div className="flex gap-2 flex-wrap justify-end">
                       <Button size="sm" variant="outline" onClick={() => handleView(order)}>
                         <Eye className="h-4 w-4" />
