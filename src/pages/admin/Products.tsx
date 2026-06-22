@@ -482,7 +482,11 @@ const Products = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <h1 className="text-2xl font-bold">المنتجات</h1>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
+          <Button variant="outline" className="gap-2" onClick={() => { setEditingCategory(null); setNewCategoryName(''); setCategoryDialogOpen(true); }}>
+            <Factory className="h-4 w-4" />
+            مصانع
+          </Button>
           <Button variant="outline" className="gap-2" onClick={() => setPrintDialogOpen(true)}>
             <Printer className="h-4 w-4" />
             طباعة الباركود
@@ -560,6 +564,19 @@ const Products = () => {
                       dir="ltr"
                     />
                   </div>
+                </div>
+                <div>
+                  <Label>المصنع (اختياري)</Label>
+                  <select
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    value={formData.category_id}
+                    onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
+                  >
+                    <option value="">بدون مصنع</option>
+                    {categories.map((c) => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </select>
                 </div>
                 <Button type="submit" className="w-full">
                   {editingProduct ? 'تحديث' : 'إضافة'}
