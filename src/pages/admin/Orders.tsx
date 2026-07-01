@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Eye, Edit2, Trash2, FileText, Search, ShoppingCart, Plus, Copy, Gift } from 'lucide-react';
+import { Eye, Edit2, Trash2, FileText, Search, ShoppingCart, Plus, Copy, Gift, Download } from 'lucide-react';
+// @ts-ignore
+import html2pdf from 'html2pdf.js';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -681,6 +683,89 @@ const Orders = () => {
     setTimeout(() => URL.revokeObjectURL(url), 60000);
   };
 
+  const downloadInvoicePdf = async (order: Order) => {
+    if (!order.items) return;
+    const logoBase64 = await getLogoBase64();
+    const calculatedSubtotal = order.items.reduce((sum, item) => sum + calculateItemTotal(item), 0);
+    const orderDiscount = getDiscountAmount(order, calculatedSubtotal);
+    const calculatedTotal = calculatedSubtotal - order.deposit_amount - orderDiscount;
+
+    const container = document.createElement('div');
+    container.style.direction = 'rtl';
+    container.style.fontFamily = "'Cairo', Arial, sans-serif";
+    container.style.padding = '20px';
+    container.style.background = '#fff';
+    container.innerHTML = `
+      <div style="text-align:center;margin-bottom:20px;">
+        ${logoBase64 ? `<img src="${logoBase64}" style="width:130px;height:auto;object-fit:contain;margin-bottom:8px;" />` : ''}
+        <h1 style="color:#1e2a5e;margin:0;">DIDUTTI KID'S</h1>
+        <h2 style="margin:6px 0;">فاتورة رقم ${order.order_number}</h2>
+        ${order.order_type === 'gift' ? `<div style="display:inline-block;margin-top:8px;padding:8px 18px;background:#fce7f3;color:#9d174d;border:2px dashed #ec4899;border-radius:8px;font-weight:bold;">🎁 هذه الفاتورة هدية</div>` : ''}
+        ${order.order_type === 'piece' ? `<div style="display:inline-block;margin-top:8px;padding:6px 14px;background:#dbeafe;color:#1e40af;border-radius:8px;font-weight:bold;">✂️ بيع بالقطعة</div>` : ''}
+      </div>
+      <div style="margin-bottom:16px;">
+        <p><strong>العميل:</strong> ${order.customer_name}</p>
+        ${order.shop_name ? `<p><strong>المحل:</strong> ${order.shop_name}</p>` : ''}
+        <p><strong>الهاتف:</strong> ${order.phone}</p>
+        ${order.address ? `<p><strong>العنوان:</strong> ${order.address}</p>` : ''}
+        <p><strong>التاريخ:</strong> ${new Date(order.created_at).toLocaleDateString('ar-EG')}</p>
+        ${order.extra_info ? `<p><strong>ملاحظات:</strong> ${order.extra_info}</p>` : ''}
+      </div>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:16px;">
+        <thead>
+          <tr>
+            <th style="border:1px solid #ddd;padding:8px;background:#1e2a5e;color:#fff;">الكود</th>
+            <th style="border:1px solid #ddd;padding:8px;background:#1e2a5e;color:#fff;">المنتج</th>
+            <th style="border:1px solid #ddd;padding:8px;background:#1e2a5e;color:#fff;">السعر</th>
+            <th style="border:1px solid #ddd;padding:8px;background:#1e2a5e;color:#fff;">الكمية</th>
+            <th style="border:1px solid #ddd;padding:8px;background:#1e2a5e;color:#fff;">الإجمالي</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${[...order.items].sort((a, b) => a.product_code.localeCompare(b.product_code, undefined, { numeric: true })).map(item => {
+            let displayQuantity = item.quantity;
+            const multiplier = getDescriptionMultiplier(item.product_description);
+            if (multiplier > 1) displayQuantity = item.quantity * multiplier;
+            const itemTotal = calculateItemTotal(item);
+            return `<tr>
+              <td style="border:1px solid #ddd;padding:8px;text-align:right;">${item.product_code}</td>
+              <td style="border:1px solid #ddd;padding:8px;text-align:right;">${item.product_name}</td>
+              <td style="border:1px solid #ddd;padding:8px;text-align:right;">${item.price} ج.م</td>
+              <td style="border:1px solid #ddd;padding:8px;text-align:right;">${displayQuantity}</td>
+              <td style="border:1px solid #ddd;padding:8px;text-align:right;">${itemTotal.toFixed(2)} ج.م</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+      <div style="text-align:left;">
+        ${order.order_type === 'gift' ? `
+          <p>الإجمالي الفرعي: ${calculatedSubtotal.toFixed(2)} ج.م</p>
+          <p style="color:#9d174d;font-weight:bold;">خصم الهدية: -${calculatedSubtotal.toFixed(2)} ج.م</p>
+          <p style="font-size:1.2em;font-weight:bold;color:#9d174d;">المطلوب: 0.00 ج.م 🎁 (هدية)</p>
+        ` : `
+          <p>الإجمالي الفرعي: ${calculatedSubtotal.toFixed(2)} ج.م</p>
+          ${orderDiscount > 0 ? `<p>الخصم${order.discount_type === 'percent' ? ` (${order.discount}%)` : ''}: -${orderDiscount.toFixed(2)} ج.م</p>` : ''}
+          ${order.deposit_amount > 0 ? `<p>العربون (${order.deposit_method}): -${order.deposit_amount.toFixed(2)} ج.م</p>` : ''}
+          <p style="font-size:1.2em;font-weight:bold;color:#1e2a5e;">المطلوب: ${calculatedTotal.toFixed(2)} ج.م</p>
+        `}
+      </div>
+    `;
+
+    try {
+      await html2pdf().set({
+        margin: 10,
+        filename: `invoice-${order.order_number}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      }).from(container).save();
+      toast.success('تم تحميل الفاتورة');
+    } catch (e) {
+      console.error(e);
+      toast.error('فشل تحميل الفاتورة');
+    }
+  };
+
   const filteredOrders = orders.filter((o) => {
     if (statusFilter !== 'all' && o.status !== statusFilter) return false;
     if (!searchCode) return true;
@@ -823,6 +908,12 @@ const Orders = () => {
                         generateInvoice({ ...order, items });
                       }}>
                         <FileText className="h-4 w-4" />
+                      </Button>
+                      <Button size="sm" variant="outline" title="تحميل PDF" onClick={async () => {
+                        const items = await loadOrderItems(order.id);
+                        downloadInvoicePdf({ ...order, items });
+                      }}>
+                        <Download className="h-4 w-4" />
                       </Button>
                       <Button size="sm" variant="outline" className="text-destructive" onClick={() => handleDelete(order.id)}>
                         <Trash2 className="h-4 w-4" />
