@@ -115,7 +115,7 @@ export async function downloadInvoicePDF(data: InvoiceData): Promise<void> {
   doc.addFileToVFS('Amiri-Bold.ttf', cachedBold!);
   doc.addFont('Amiri-Bold.ttf', 'Amiri', 'bold');
   doc.setFont('Amiri', 'normal');
-  doc.setR2L(true);
+
 
   const pageWidth = doc.internal.pageSize.getWidth();
   const marginX = 12;
