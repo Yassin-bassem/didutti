@@ -1,81 +1,6 @@
 import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
-// @ts-ignore - no types
-import { ArabicShaper } from 'arabic-persian-reshaper';
-import amiriRegularUrl from '@/assets/fonts/Amiri-Regular.ttf?url';
-import amiriBoldUrl from '@/assets/fonts/Amiri-Bold.ttf?url';
+import html2canvas from 'html2canvas';
 import logoImage from '@/assets/didutti-logo.jpg';
-
-let cachedRegular: string | null = null;
-let cachedBold: string | null = null;
-let cachedLogo: string | null = null;
-
-async function fetchAsBase64(url: string): Promise<string> {
-  const res = await fetch(url);
-  const buf = await res.arrayBuffer();
-  let binary = '';
-  const bytes = new Uint8Array(buf);
-  const chunk = 0x8000;
-  for (let i = 0; i < bytes.length; i += chunk) {
-    binary += String.fromCharCode.apply(null, Array.from(bytes.subarray(i, i + chunk)));
-  }
-  return btoa(binary);
-}
-
-async function ensureFonts() {
-  if (!cachedRegular) cachedRegular = await fetchAsBase64(amiriRegularUrl);
-  if (!cachedBold) cachedBold = await fetchAsBase64(amiriBoldUrl);
-}
-
-async function ensureLogo(): Promise<string | null> {
-  if (cachedLogo) return cachedLogo;
-  try {
-    const res = await fetch(logoImage);
-    const blob = await res.blob();
-    return await new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        cachedLogo = reader.result as string;
-        resolve(cachedLogo);
-      };
-      reader.onerror = () => resolve(null);
-      reader.readAsDataURL(blob);
-    });
-  } catch {
-    return null;
-  }
-}
-
-// Shape Arabic text for jsPDF. Since jsPDF has no bidi engine, we:
-// 1) Split the string into Arabic and non-Arabic (Latin/digits/punct) runs
-// 2) Shape each Arabic run with the reshaper, then reverse it (visual RTL)
-// 3) Reverse the sequence of runs so the whole line reads right-to-left
-// 4) Digits inside numbers keep their LTR order
-function ar(text: string | number | null | undefined): string {
-  if (text === null || text === undefined) return '';
-  const s = String(text);
-  if (!/[\u0600-\u06FF]/.test(s)) return s;
-
-  const reverseStr = (str: string) => str.split('').reverse().join('');
-  // Tokenize: Arabic run | Latin/number run | whitespace | other
-  const tokenRe = /([\u0627-\u064A\u0671-\u06D3\uFB50-\uFDFF\uFE70-\uFEFF]+)|([A-Za-z0-9\u0660-\u0669\u06F0-\u06F9]+(?:[.,\/:\-][A-Za-z0-9\u0660-\u0669\u06F0-\u06F9]+)*)|(\s+)|([^\s])/g;
-  const runs: { type: 'ar' | 'latin' | 'space' | 'other'; text: string }[] = [];
-  let m: RegExpExecArray | null;
-  while ((m = tokenRe.exec(s)) !== null) {
-    if (m[1]) {
-      let shaped = m[1];
-      try { shaped = ArabicShaper.convertArabic(m[1]); } catch {}
-      runs.push({ type: 'ar', text: reverseStr(shaped) });
-    } else if (m[2]) {
-      runs.push({ type: 'latin', text: m[2] });
-    } else if (m[3]) {
-      runs.push({ type: 'space', text: m[3] });
-    } else if (m[4]) {
-      runs.push({ type: 'other', text: m[4] });
-    }
-  }
-  return runs.reverse().map(r => r.text).join('');
-}
 
 export interface InvoiceItem {
   product_code: string;
@@ -104,150 +29,153 @@ export interface InvoiceData {
   total: number;
 }
 
-export async function downloadInvoicePDF(data: InvoiceData): Promise<void> {
-  await ensureFonts();
-  const logoDataUrl = await ensureLogo();
-
-  const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
-  // Register Amiri font
-  doc.addFileToVFS('Amiri-Regular.ttf', cachedRegular!);
-  doc.addFont('Amiri-Regular.ttf', 'Amiri', 'normal');
-  doc.addFileToVFS('Amiri-Bold.ttf', cachedBold!);
-  doc.addFont('Amiri-Bold.ttf', 'Amiri', 'bold');
-  doc.setFont('Amiri', 'normal');
-
-
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const marginX = 12;
-
-  // Header — logo top-right, brand text centered
-  if (logoDataUrl) {
-    try {
-      doc.addImage(logoDataUrl, 'JPEG', pageWidth - marginX - 30, 8, 30, 18, undefined, 'FAST');
-    } catch {}
-  }
-
-  doc.setFont('Amiri', 'bold');
-  doc.setFontSize(20);
-  doc.setTextColor(30, 42, 94);
-  doc.text("DIDUTTI KID'S", pageWidth / 2, 18, { align: 'center' });
-
-  doc.setFontSize(14);
-  doc.setTextColor(0, 0, 0);
-  doc.text(ar(`فاتورة رقم ${data.order_number}`), pageWidth / 2, 27, { align: 'center' });
-
-  if (data.order_type === 'gift') {
-    doc.setFontSize(12);
-    doc.setTextColor(157, 23, 77);
-    doc.text(ar('🎁 هذه الفاتورة هدية'), pageWidth / 2, 35, { align: 'center' });
-  } else if (data.order_type === 'piece') {
-    doc.setFontSize(11);
-    doc.setTextColor(30, 64, 175);
-    doc.text(ar('بيع بالقطعة'), pageWidth / 2, 35, { align: 'center' });
-  }
-
-  // Customer info block — right-aligned
-  let y = 46;
-  doc.setFont('Amiri', 'normal');
-  doc.setFontSize(11);
-  doc.setTextColor(0, 0, 0);
-
-  const rightX = pageWidth - marginX;
-  const infoLine = (label: string, value: string) => {
-    doc.setFont('Amiri', 'bold');
-    doc.text(ar(label), rightX, y, { align: 'right' });
-    const labelWidth = doc.getTextWidth(ar(label));
-    doc.setFont('Amiri', 'normal');
-    doc.text(ar(value), rightX - labelWidth - 1, y, { align: 'right' });
-    y += 6;
-  };
-
-  infoLine('العميل: ', data.customer_name);
-  if (data.shop_name) infoLine('المحل: ', data.shop_name);
-  infoLine('الهاتف: ', data.phone);
-  if (data.address) infoLine('العنوان: ', data.address);
-  infoLine('التاريخ: ', new Date(data.created_at).toLocaleDateString('ar-EG'));
-  if (data.extra_info) infoLine('ملاحظات: ', data.extra_info);
-
-  // Products table — columns right-to-left visually
-  const head = [[
-    ar('الكود'),
-    ar('المنتج'),
-    ar('السعر'),
-    ar('الكمية'),
-    ar('الإجمالي'),
-  ]];
-
-  const body = data.items.map((it) => [
-    String(it.product_code),
-    ar(it.product_name),
-    ar(`${it.price} ج.م`),
-    String(it.displayQuantity),
-    ar(`${it.itemTotal.toFixed(2)} ج.م`),
-  ]);
-
-  autoTable(doc, {
-    head,
-    body,
-    startY: y + 2,
-    margin: { left: marginX, right: marginX },
-    styles: {
-      font: 'Amiri',
-      fontStyle: 'normal',
-      fontSize: 10,
-      halign: 'right',
-      cellPadding: 2.5,
-      textColor: [0, 0, 0],
-      lineColor: [200, 200, 200],
-      lineWidth: 0.2,
-    },
-    headStyles: {
-      font: 'Amiri',
-      fontStyle: 'bold',
-      fillColor: [30, 42, 94],
-      textColor: [255, 255, 255],
-      halign: 'right',
-    },
-    columnStyles: {
-      0: { cellWidth: 22 },
-      2: { cellWidth: 22 },
-      3: { cellWidth: 18 },
-      4: { cellWidth: 30 },
-    },
+let cachedLogo: string | null = null;
+async function ensureLogo(): Promise<string> {
+  if (cachedLogo) return cachedLogo;
+  const res = await fetch(logoImage);
+  const blob = await res.blob();
+  return await new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onloadend = () => { cachedLogo = reader.result as string; resolve(cachedLogo!); };
+    reader.readAsDataURL(blob);
   });
+}
 
-  // Totals — right-aligned under the table
-  // @ts-ignore - lastAutoTable is added by plugin
-  let ty = (doc as any).lastAutoTable.finalY + 8;
-  doc.setFont('Amiri', 'normal');
-  doc.setFontSize(11);
-  doc.setTextColor(0, 0, 0);
-
-  const totalLine = (text: string, bold = false, color: [number, number, number] = [0, 0, 0], size = 11) => {
-    doc.setFont('Amiri', bold ? 'bold' : 'normal');
-    doc.setFontSize(size);
-    doc.setTextColor(...color);
-    doc.text(ar(text), rightX, ty, { align: 'right' });
-    ty += size * 0.55 + 2;
-  };
-
-  if (data.order_type === 'gift') {
-    totalLine(`الإجمالي الفرعي: ${data.subtotal.toFixed(2)} ج.م`);
-    totalLine(`خصم الهدية: -${data.subtotal.toFixed(2)} ج.م`, true, [157, 23, 77]);
-    totalLine('المطلوب: 0.00 ج.م 🎁 (هدية)', true, [157, 23, 77], 14);
-  } else {
-    totalLine(`الإجمالي الفرعي: ${data.subtotal.toFixed(2)} ج.م`);
-    if (data.discountAmount > 0) {
-      const label = data.discount_type === 'percent'
-        ? `الخصم (${data.discount}%): -${data.discountAmount.toFixed(2)} ج.م`
-        : `الخصم: -${data.discountAmount.toFixed(2)} ج.م`;
-      totalLine(label);
-    }
-    if (data.deposit_amount > 0) {
-      totalLine(`العربون (${data.deposit_method || ''}): -${data.deposit_amount.toFixed(2)} ج.م`);
-    }
-    totalLine(`المطلوب: ${data.total.toFixed(2)} ج.م`, true, [30, 42, 94], 14);
+async function ensureCairoFont(): Promise<void> {
+  const id = 'cairo-font-invoice';
+  if (document.getElementById(id)) {
+    await (document as any).fonts?.ready;
+    return;
   }
+  const link = document.createElement('link');
+  link.id = id;
+  link.rel = 'stylesheet';
+  link.href = 'https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap';
+  document.head.appendChild(link);
+  await new Promise((r) => setTimeout(r, 400));
+  try { await (document as any).fonts?.load('700 20px Cairo'); } catch {}
+  try { await (document as any).fonts?.ready; } catch {}
+}
 
-  doc.save(`invoice-${data.order_number}.pdf`);
+function buildInvoiceHTML(data: InvoiceData, logoDataUrl: string): string {
+  const fmt = (n: number) => `${n.toFixed(2)} ج.م`;
+  const dateStr = new Date(data.created_at).toLocaleDateString('ar-EG');
+  const isGift = data.order_type === 'gift';
+  const isPiece = data.order_type === 'piece';
+
+  const itemsRows = data.items.map((it) => `
+    <tr>
+      <td style="border:1px solid #d1d5db;padding:8px;text-align:center;">${it.product_code}</td>
+      <td style="border:1px solid #d1d5db;padding:8px;text-align:right;">${it.product_name}</td>
+      <td style="border:1px solid #d1d5db;padding:8px;text-align:center;">${it.price} ج.م</td>
+      <td style="border:1px solid #d1d5db;padding:8px;text-align:center;">${it.displayQuantity}</td>
+      <td style="border:1px solid #d1d5db;padding:8px;text-align:center;">${fmt(it.itemTotal)}</td>
+    </tr>
+  `).join('');
+
+  const totals = isGift
+    ? `
+      <div style="display:flex;justify-content:space-between;padding:6px 0;"><span>الإجمالي الفرعي:</span><span>${fmt(data.subtotal)}</span></div>
+      <div style="display:flex;justify-content:space-between;padding:6px 0;color:#9d174d;"><span>خصم الهدية:</span><span>-${fmt(data.subtotal)}</span></div>
+      <div style="display:flex;justify-content:space-between;padding:10px 0;font-size:20px;font-weight:700;color:#9d174d;border-top:2px solid #9d174d;margin-top:6px;"><span>المطلوب:</span><span>0.00 ج.م 🎁 (هدية)</span></div>
+    `
+    : `
+      <div style="display:flex;justify-content:space-between;padding:6px 0;"><span>الإجمالي الفرعي:</span><span>${fmt(data.subtotal)}</span></div>
+      ${data.discountAmount > 0 ? `<div style="display:flex;justify-content:space-between;padding:6px 0;color:#b91c1c;"><span>الخصم${data.discount_type === 'percent' ? ` (${data.discount}%)` : ''}:</span><span>-${fmt(data.discountAmount)}</span></div>` : ''}
+      ${data.deposit_amount > 0 ? `<div style="display:flex;justify-content:space-between;padding:6px 0;"><span>العربون (${data.deposit_method || ''}):</span><span>-${fmt(data.deposit_amount)}</span></div>` : ''}
+      <div style="display:flex;justify-content:space-between;padding:10px 0;font-size:20px;font-weight:700;color:#1e2a5e;border-top:2px solid #1e2a5e;margin-top:6px;"><span>المطلوب:</span><span>${fmt(data.total)}</span></div>
+    `;
+
+  return `
+    <div dir="rtl" style="font-family:'Cairo',sans-serif;padding:32px;width:794px;background:#fff;color:#111827;box-sizing:border-box;">
+      <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #1e2a5e;padding-bottom:16px;margin-bottom:20px;">
+        <img src="${logoDataUrl}" style="height:70px;width:auto;" crossorigin="anonymous" />
+        <div style="text-align:center;">
+          <h1 style="margin:0;font-size:28px;font-weight:700;color:#1e2a5e;">DIDUTTI KID'S</h1>
+          <p style="margin:6px 0 0;font-size:18px;font-weight:600;">فاتورة رقم ${data.order_number}</p>
+          ${isGift ? `<p style="margin:6px 0 0;color:#9d174d;font-weight:700;">🎁 هذه الفاتورة هدية</p>` : ''}
+          ${isPiece ? `<p style="margin:6px 0 0;color:#1e40af;font-weight:600;">بيع بالقطعة</p>` : ''}
+        </div>
+        <div style="width:70px;"></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px;font-size:14px;">
+        <div><strong>العميل:</strong> ${data.customer_name}</div>
+        ${data.shop_name ? `<div><strong>المحل:</strong> ${data.shop_name}</div>` : '<div></div>'}
+        <div><strong>الهاتف:</strong> ${data.phone}</div>
+        <div><strong>التاريخ:</strong> ${dateStr}</div>
+        ${data.address ? `<div style="grid-column:1/-1;"><strong>العنوان:</strong> ${data.address}</div>` : ''}
+        ${data.extra_info ? `<div style="grid-column:1/-1;"><strong>ملاحظات:</strong> ${data.extra_info}</div>` : ''}
+      </div>
+
+      <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:20px;">
+        <thead>
+          <tr style="background:#1e2a5e;color:#fff;">
+            <th style="border:1px solid #1e2a5e;padding:10px;">الكود</th>
+            <th style="border:1px solid #1e2a5e;padding:10px;">المنتج</th>
+            <th style="border:1px solid #1e2a5e;padding:10px;">السعر</th>
+            <th style="border:1px solid #1e2a5e;padding:10px;">الكمية</th>
+            <th style="border:1px solid #1e2a5e;padding:10px;">الإجمالي</th>
+          </tr>
+        </thead>
+        <tbody>${itemsRows}</tbody>
+      </table>
+
+      <div style="margin-right:auto;width:60%;font-size:14px;">${totals}</div>
+
+      <p style="text-align:center;margin-top:28px;padding-top:12px;border-top:1px solid #e5e7eb;color:#6b7280;font-size:12px;">شكراً لتعاملكم مع DIDUTTI KID'S</p>
+    </div>
+  `;
+}
+
+export async function downloadInvoicePDF(data: InvoiceData): Promise<void> {
+  const logoDataUrl = await ensureLogo();
+  await ensureCairoFont();
+
+  const wrapper = document.createElement('div');
+  wrapper.style.cssText = 'position:fixed;left:0;top:0;width:0;height:0;overflow:hidden;opacity:0;pointer-events:none;z-index:-1;';
+  const inner = document.createElement('div');
+  inner.innerHTML = buildInvoiceHTML(data, logoDataUrl);
+  wrapper.appendChild(inner);
+  document.body.appendChild(wrapper);
+
+  // wait for logo image to load
+  const img = inner.querySelector('img');
+  if (img && !(img as HTMLImageElement).complete) {
+    await new Promise((r) => { (img as HTMLImageElement).onload = r; (img as HTMLImageElement).onerror = r; });
+  }
+  await new Promise((r) => setTimeout(r, 150));
+
+  try {
+    const target = inner.firstElementChild as HTMLElement;
+    const canvas = await html2canvas(target, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+      logging: false,
+      windowWidth: target.scrollWidth,
+      windowHeight: target.scrollHeight,
+    });
+
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pageWidth = 210;
+    const pageHeight = 297;
+    const imgWidth = pageWidth;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    const imgData = canvas.toDataURL('image/png');
+
+    let heightLeft = imgHeight;
+    let position = 0;
+    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+    heightLeft -= pageHeight;
+    while (heightLeft > 0) {
+      position = heightLeft - imgHeight;
+      pdf.addPage();
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+    }
+    pdf.save(`invoice-${data.order_number}.pdf`);
+  } finally {
+    document.body.removeChild(wrapper);
+  }
 }
