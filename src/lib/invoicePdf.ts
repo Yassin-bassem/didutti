@@ -158,7 +158,7 @@ export async function downloadInvoicePDF(data: InvoiceData): Promise<void> {
     doc.text(ar(label), rightX, y, { align: 'right' });
     const labelWidth = doc.getTextWidth(ar(label));
     doc.setFont('Amiri', 'normal');
-    doc.text(ar(value), rightX - labelWidth - 2, y, { align: 'right' });
+    doc.text(ar(value), rightX - labelWidth - 1, y, { align: 'right' });
     y += 6;
   };
 
