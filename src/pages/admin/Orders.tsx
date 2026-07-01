@@ -720,9 +720,10 @@ const Orders = () => {
     container.style.padding = '20px';
     container.style.background = '#fff';
     container.style.width = '800px';
-    container.style.position = 'fixed';
-    container.style.top = '-10000px';
-    container.style.left = '0';
+    container.style.position = 'absolute';
+    container.style.top = '0';
+    container.style.left = '-10000px';
+    container.style.zIndex = '-1';
     container.innerHTML = `
       <div style="text-align:center;margin-bottom:20px;">
         ${logoBase64 ? `<img src="${logoBase64}" style="width:130px;height:auto;object-fit:contain;margin-bottom:8px;" />` : ''}
