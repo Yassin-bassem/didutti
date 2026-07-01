@@ -788,8 +788,19 @@ const Orders = () => {
     `;
 
     document.body.appendChild(wrapper);
-    // Small delay to allow layout/fonts to settle
-    await new Promise((r) => setTimeout(r, 250));
+    // Wait for images inside container to finish loading
+    const imgs = Array.from(container.querySelectorAll('img'));
+    await Promise.all(
+      imgs.map((img) =>
+        img.complete && img.naturalWidth > 0
+          ? Promise.resolve()
+          : new Promise<void>((res) => {
+              img.onload = () => res();
+              img.onerror = () => res();
+            })
+      )
+    );
+    await new Promise((r) => setTimeout(r, 300));
 
     try {
       await html2pdf().set({
