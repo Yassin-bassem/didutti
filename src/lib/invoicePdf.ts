@@ -46,17 +46,35 @@ async function ensureLogo(): Promise<string | null> {
   }
 }
 
-// Shape Arabic text so contextual letter forms render correctly in jsPDF.
-// Leaves Latin/digits untouched.
+// Shape Arabic text for jsPDF. Since jsPDF has no bidi engine, we:
+// 1) Split the string into Arabic and non-Arabic (Latin/digits/punct) runs
+// 2) Shape each Arabic run with the reshaper, then reverse it (visual RTL)
+// 3) Reverse the sequence of runs so the whole line reads right-to-left
+// 4) Digits inside numbers keep their LTR order
 function ar(text: string | number | null | undefined): string {
   if (text === null || text === undefined) return '';
   const s = String(text);
   if (!/[\u0600-\u06FF]/.test(s)) return s;
-  try {
-    return ArabicShaper.convertArabic(s);
-  } catch {
-    return s;
+
+  const reverseStr = (str: string) => str.split('').reverse().join('');
+  // Tokenize: Arabic run | Latin/number run | whitespace | other
+  const tokenRe = /([\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF]+)|([A-Za-z0-9]+(?:[.,][0-9]+)*)|(\s+)|([^\s])/g;
+  const runs: { type: 'ar' | 'latin' | 'space' | 'other'; text: string }[] = [];
+  let m: RegExpExecArray | null;
+  while ((m = tokenRe.exec(s)) !== null) {
+    if (m[1]) {
+      let shaped = m[1];
+      try { shaped = ArabicShaper.convertArabic(m[1]); } catch {}
+      runs.push({ type: 'ar', text: reverseStr(shaped) });
+    } else if (m[2]) {
+      runs.push({ type: 'latin', text: m[2] });
+    } else if (m[3]) {
+      runs.push({ type: 'space', text: m[3] });
+    } else if (m[4]) {
+      runs.push({ type: 'other', text: m[4] });
+    }
   }
+  return runs.reverse().map(r => r.text).join('');
 }
 
 export interface InvoiceItem {
