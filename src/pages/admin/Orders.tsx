@@ -787,7 +787,7 @@ const Orders = () => {
       </div>
     `;
 
-    document.body.appendChild(container);
+    document.body.appendChild(wrapper);
     // Small delay to allow layout/fonts to settle
     await new Promise((r) => setTimeout(r, 250));
 
