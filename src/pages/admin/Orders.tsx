@@ -690,11 +690,39 @@ const Orders = () => {
     const orderDiscount = getDiscountAmount(order, calculatedSubtotal);
     const calculatedTotal = calculatedSubtotal - order.deposit_amount - orderDiscount;
 
+    // Ensure Cairo font (with proper Arabic shaping) is loaded before rendering
+    const ensureCairoFont = async () => {
+      if (!document.getElementById('cairo-font-link')) {
+        const link = document.createElement('link');
+        link.id = 'cairo-font-link';
+        link.rel = 'stylesheet';
+        link.href = 'https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap';
+        document.head.appendChild(link);
+      }
+      try {
+        // @ts-ignore
+        if (document.fonts && document.fonts.load) {
+          // @ts-ignore
+          await document.fonts.load('700 16px Cairo');
+          // @ts-ignore
+          await document.fonts.load('400 14px Cairo');
+          // @ts-ignore
+          await document.fonts.ready;
+        }
+      } catch {}
+    };
+    await ensureCairoFont();
+
     const container = document.createElement('div');
     container.style.direction = 'rtl';
-    container.style.fontFamily = "'Cairo', Arial, sans-serif";
+    container.setAttribute('lang', 'ar');
+    container.style.fontFamily = "'Cairo', 'Segoe UI', Tahoma, Arial, sans-serif";
     container.style.padding = '20px';
     container.style.background = '#fff';
+    container.style.width = '800px';
+    container.style.position = 'fixed';
+    container.style.top = '-10000px';
+    container.style.left = '0';
     container.innerHTML = `
       <div style="text-align:center;margin-bottom:20px;">
         ${logoBase64 ? `<img src="${logoBase64}" style="width:130px;height:auto;object-fit:contain;margin-bottom:8px;" />` : ''}
@@ -751,18 +779,24 @@ const Orders = () => {
       </div>
     `;
 
+    document.body.appendChild(container);
+    // Small delay to allow layout/fonts to settle
+    await new Promise((r) => setTimeout(r, 250));
+
     try {
       await html2pdf().set({
         margin: 10,
         filename: `invoice-${order.order_number}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true },
+        html2canvas: { scale: 2, useCORS: true, letterRendering: true },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
       }).from(container).save();
       toast.success('تم تحميل الفاتورة');
     } catch (e) {
       console.error(e);
       toast.error('فشل تحميل الفاتورة');
+    } finally {
+      container.remove();
     }
   };
 
