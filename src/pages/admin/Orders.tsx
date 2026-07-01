@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Eye, Edit2, Trash2, FileText, Search, ShoppingCart, Plus, Copy, Gift } from 'lucide-react';
+import { Eye, Edit2, Trash2, FileText, Search, ShoppingCart, Plus, Copy, Gift, Download } from 'lucide-react';
+// @ts-ignore
+import html2pdf from 'html2pdf.js';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
