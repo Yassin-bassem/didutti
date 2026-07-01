@@ -58,7 +58,7 @@ function ar(text: string | number | null | undefined): string {
 
   const reverseStr = (str: string) => str.split('').reverse().join('');
   // Tokenize: Arabic run | Latin/number run | whitespace | other
-  const tokenRe = /([\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF]+)|([A-Za-z0-9]+(?:[.,][0-9]+)*)|(\s+)|([^\s])/g;
+  const tokenRe = /([\u0627-\u064A\u0671-\u06D3\uFB50-\uFDFF\uFE70-\uFEFF]+)|([A-Za-z0-9\u0660-\u0669\u06F0-\u06F9]+(?:[.,\/:\-][A-Za-z0-9\u0660-\u0669\u06F0-\u06F9]+)*)|(\s+)|([^\s])/g;
   const runs: { type: 'ar' | 'latin' | 'space' | 'other'; text: string }[] = [];
   let m: RegExpExecArray | null;
   while ((m = tokenRe.exec(s)) !== null) {
