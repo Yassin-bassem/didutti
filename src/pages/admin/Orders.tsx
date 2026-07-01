@@ -684,139 +684,44 @@ const Orders = () => {
 
   const downloadInvoicePdf = async (order: Order) => {
     if (!order.items) return;
-    const logoBase64 = await getLogoBase64();
-    const calculatedSubtotal = order.items.reduce((sum, item) => sum + calculateItemTotal(item), 0);
-    const orderDiscount = getDiscountAmount(order, calculatedSubtotal);
-    const calculatedTotal = calculatedSubtotal - order.deposit_amount - orderDiscount;
-
-    // Ensure Cairo font (with proper Arabic shaping) is loaded before rendering
-    const ensureCairoFont = async () => {
-      if (!document.getElementById('cairo-font-link')) {
-        const link = document.createElement('link');
-        link.id = 'cairo-font-link';
-        link.rel = 'stylesheet';
-        link.href = 'https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap';
-        document.head.appendChild(link);
-      }
-      try {
-        // @ts-ignore
-        if (document.fonts && document.fonts.load) {
-          // @ts-ignore
-          await document.fonts.load('700 16px Cairo');
-          // @ts-ignore
-          await document.fonts.load('400 14px Cairo');
-          // @ts-ignore
-          await document.fonts.ready;
-        }
-      } catch {}
-    };
-    await ensureCairoFont();
-
-    const container = document.createElement('div');
-    container.style.direction = 'rtl';
-    container.setAttribute('lang', 'ar');
-    container.style.fontFamily = "'Cairo', 'Segoe UI', Tahoma, Arial, sans-serif";
-    container.style.padding = '20px';
-    container.style.background = '#fff';
-    container.style.width = '800px';
-    // Render inside a 0x0 overflow:hidden wrapper so it stays laid out & visible
-    // to html2canvas but invisible to the user.
-    const wrapper = document.createElement('div');
-    wrapper.style.position = 'fixed';
-    wrapper.style.top = '0';
-    wrapper.style.left = '0';
-    wrapper.style.width = '0';
-    wrapper.style.height = '0';
-    wrapper.style.overflow = 'hidden';
-    wrapper.style.zIndex = '-1';
-    wrapper.appendChild(container);
-    container.innerHTML = `
-      <div style="text-align:center;margin-bottom:20px;">
-        ${logoBase64 ? `<img src="${logoBase64}" style="width:130px;height:auto;object-fit:contain;margin-bottom:8px;" />` : ''}
-        <h1 style="color:#1e2a5e;margin:0;">DIDUTTI KID'S</h1>
-        <h2 style="margin:6px 0;">فاتورة رقم ${order.order_number}</h2>
-        ${order.order_type === 'gift' ? `<div style="display:inline-block;margin-top:8px;padding:8px 18px;background:#fce7f3;color:#9d174d;border:2px dashed #ec4899;border-radius:8px;font-weight:bold;">🎁 هذه الفاتورة هدية</div>` : ''}
-        ${order.order_type === 'piece' ? `<div style="display:inline-block;margin-top:8px;padding:6px 14px;background:#dbeafe;color:#1e40af;border-radius:8px;font-weight:bold;">✂️ بيع بالقطعة</div>` : ''}
-      </div>
-      <div style="margin-bottom:16px;">
-        <p><strong>العميل:</strong> ${order.customer_name}</p>
-        ${order.shop_name ? `<p><strong>المحل:</strong> ${order.shop_name}</p>` : ''}
-        <p><strong>الهاتف:</strong> ${order.phone}</p>
-        ${order.address ? `<p><strong>العنوان:</strong> ${order.address}</p>` : ''}
-        <p><strong>التاريخ:</strong> ${new Date(order.created_at).toLocaleDateString('ar-EG')}</p>
-        ${order.extra_info ? `<p><strong>ملاحظات:</strong> ${order.extra_info}</p>` : ''}
-      </div>
-      <table style="width:100%;border-collapse:collapse;margin-bottom:16px;">
-        <thead>
-          <tr>
-            <th style="border:1px solid #ddd;padding:8px;background:#1e2a5e;color:#fff;">الكود</th>
-            <th style="border:1px solid #ddd;padding:8px;background:#1e2a5e;color:#fff;">المنتج</th>
-            <th style="border:1px solid #ddd;padding:8px;background:#1e2a5e;color:#fff;">السعر</th>
-            <th style="border:1px solid #ddd;padding:8px;background:#1e2a5e;color:#fff;">الكمية</th>
-            <th style="border:1px solid #ddd;padding:8px;background:#1e2a5e;color:#fff;">الإجمالي</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${[...order.items].sort((a, b) => a.product_code.localeCompare(b.product_code, undefined, { numeric: true })).map(item => {
-            let displayQuantity = item.quantity;
-            const multiplier = getDescriptionMultiplier(item.product_description);
-            if (multiplier > 1) displayQuantity = item.quantity * multiplier;
-            const itemTotal = calculateItemTotal(item);
-            return `<tr>
-              <td style="border:1px solid #ddd;padding:8px;text-align:right;">${item.product_code}</td>
-              <td style="border:1px solid #ddd;padding:8px;text-align:right;">${item.product_name}</td>
-              <td style="border:1px solid #ddd;padding:8px;text-align:right;">${item.price} ج.م</td>
-              <td style="border:1px solid #ddd;padding:8px;text-align:right;">${displayQuantity}</td>
-              <td style="border:1px solid #ddd;padding:8px;text-align:right;">${itemTotal.toFixed(2)} ج.م</td>
-            </tr>`;
-          }).join('')}
-        </tbody>
-      </table>
-      <div style="text-align:left;">
-        ${order.order_type === 'gift' ? `
-          <p>الإجمالي الفرعي: ${calculatedSubtotal.toFixed(2)} ج.م</p>
-          <p style="color:#9d174d;font-weight:bold;">خصم الهدية: -${calculatedSubtotal.toFixed(2)} ج.م</p>
-          <p style="font-size:1.2em;font-weight:bold;color:#9d174d;">المطلوب: 0.00 ج.م 🎁 (هدية)</p>
-        ` : `
-          <p>الإجمالي الفرعي: ${calculatedSubtotal.toFixed(2)} ج.م</p>
-          ${orderDiscount > 0 ? `<p>الخصم${order.discount_type === 'percent' ? ` (${order.discount}%)` : ''}: -${orderDiscount.toFixed(2)} ج.م</p>` : ''}
-          ${order.deposit_amount > 0 ? `<p>العربون (${order.deposit_method}): -${order.deposit_amount.toFixed(2)} ج.م</p>` : ''}
-          <p style="font-size:1.2em;font-weight:bold;color:#1e2a5e;">المطلوب: ${calculatedTotal.toFixed(2)} ج.م</p>
-        `}
-      </div>
-    `;
-
-    document.body.appendChild(wrapper);
-    // Wait for images inside container to finish loading
-    const imgs = Array.from(container.querySelectorAll('img'));
-    await Promise.all(
-      imgs.map((img) =>
-        img.complete && img.naturalWidth > 0
-          ? Promise.resolve()
-          : new Promise<void>((res) => {
-              img.onload = () => res();
-              img.onerror = () => res();
-            })
-      )
-    );
-    await new Promise((r) => setTimeout(r, 300));
-
     try {
-      await html2pdf().set({
-        margin: 10,
-        filename: `invoice-${order.order_number}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, letterRendering: true },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-      }).from(container).save();
+      const subtotal = order.items.reduce((sum, item) => sum + calculateItemTotal(item), 0);
+      const discountAmount = getDiscountAmount(order, subtotal);
+      const total = subtotal - order.deposit_amount - discountAmount;
+
+      const items = [...order.items]
+        .sort((a, b) => a.product_code.localeCompare(b.product_code, undefined, { numeric: true }))
+        .map((item) => {
+          const multiplier = getDescriptionMultiplier(item.product_description);
+          const displayQuantity = multiplier > 1 ? item.quantity * multiplier : item.quantity;
+          return { ...item, displayQuantity, itemTotal: calculateItemTotal(item) };
+        });
+
+      await downloadInvoicePDF({
+        order_number: order.order_number,
+        customer_name: order.customer_name,
+        shop_name: order.shop_name,
+        phone: order.phone,
+        address: order.address,
+        extra_info: order.extra_info,
+        created_at: order.created_at,
+        order_type: order.order_type,
+        deposit_amount: order.deposit_amount,
+        deposit_method: order.deposit_method,
+        discount: order.discount,
+        discount_type: order.discount_type,
+        items,
+        subtotal,
+        discountAmount,
+        total,
+      });
       toast.success('تم تحميل الفاتورة');
     } catch (e) {
       console.error(e);
       toast.error('فشل تحميل الفاتورة');
-    } finally {
-      wrapper.remove();
     }
   };
+
 
   const filteredOrders = orders.filter((o) => {
     if (statusFilter !== 'all' && o.status !== statusFilter) return false;
