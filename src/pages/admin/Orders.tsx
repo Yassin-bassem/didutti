@@ -720,9 +720,17 @@ const Orders = () => {
     container.style.padding = '20px';
     container.style.background = '#fff';
     container.style.width = '800px';
-    container.style.position = 'fixed';
-    container.style.top = '-10000px';
-    container.style.left = '0';
+    // Render inside a 0x0 overflow:hidden wrapper so it stays laid out & visible
+    // to html2canvas but invisible to the user.
+    const wrapper = document.createElement('div');
+    wrapper.style.position = 'fixed';
+    wrapper.style.top = '0';
+    wrapper.style.left = '0';
+    wrapper.style.width = '0';
+    wrapper.style.height = '0';
+    wrapper.style.overflow = 'hidden';
+    wrapper.style.zIndex = '-1';
+    wrapper.appendChild(container);
     container.innerHTML = `
       <div style="text-align:center;margin-bottom:20px;">
         ${logoBase64 ? `<img src="${logoBase64}" style="width:130px;height:auto;object-fit:contain;margin-bottom:8px;" />` : ''}
@@ -779,9 +787,20 @@ const Orders = () => {
       </div>
     `;
 
-    document.body.appendChild(container);
-    // Small delay to allow layout/fonts to settle
-    await new Promise((r) => setTimeout(r, 250));
+    document.body.appendChild(wrapper);
+    // Wait for images inside container to finish loading
+    const imgs = Array.from(container.querySelectorAll('img'));
+    await Promise.all(
+      imgs.map((img) =>
+        img.complete && img.naturalWidth > 0
+          ? Promise.resolve()
+          : new Promise<void>((res) => {
+              img.onload = () => res();
+              img.onerror = () => res();
+            })
+      )
+    );
+    await new Promise((r) => setTimeout(r, 300));
 
     try {
       await html2pdf().set({
@@ -796,7 +815,7 @@ const Orders = () => {
       console.error(e);
       toast.error('فشل تحميل الفاتورة');
     } finally {
-      container.remove();
+      wrapper.remove();
     }
   };
 
