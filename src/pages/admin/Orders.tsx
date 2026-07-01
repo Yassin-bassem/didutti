@@ -804,7 +804,7 @@ const Orders = () => {
       console.error(e);
       toast.error('فشل تحميل الفاتورة');
     } finally {
-      container.remove();
+      wrapper.remove();
     }
   };
 
