@@ -909,6 +909,12 @@ const Orders = () => {
                       }}>
                         <FileText className="h-4 w-4" />
                       </Button>
+                      <Button size="sm" variant="outline" title="تحميل PDF" onClick={async () => {
+                        const items = await loadOrderItems(order.id);
+                        downloadInvoicePdf({ ...order, items });
+                      }}>
+                        <Download className="h-4 w-4" />
+                      </Button>
                       <Button size="sm" variant="outline" className="text-destructive" onClick={() => handleDelete(order.id)}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
