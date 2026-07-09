@@ -13,20 +13,31 @@ const Inventory = () => {
   const downloadSheet = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('products')
-        .select('code, name, description, price, stock_quantity')
-        .order('code', { ascending: true });
-      if (error) throw error;
+      const [{ data: products, error: pErr }, { data: items, error: iErr }] = await Promise.all([
+        supabase.from('products').select('id, code, name, description, price, stock_quantity').order('code', { ascending: true }),
+        supabase.from('order_items').select('product_id, quantity'),
+      ]);
+      if (pErr) throw pErr;
+      if (iErr) throw iErr;
 
-      const rows = (data || []).map((p: any) => ({
-        'الكود': p.code ?? '',
-        'الاسم': p.name ?? '',
-        'الوصف': p.description ?? '',
-        'السعر': p.price ?? 0,
-        'الكمية كانت': p.stock_quantity ?? 0,
-        'الكمية أصبحت': '',
-      }));
+      const soldMap = new Map<string, number>();
+      (items || []).forEach((it: any) => {
+        soldMap.set(it.product_id, (soldMap.get(it.product_id) || 0) + Number(it.quantity || 0));
+      });
+
+      const rows = (products || []).map((p: any) => {
+        const now = Number(p.stock_quantity ?? 0);
+        const sold = soldMap.get(p.id) || 0;
+        const before = now + sold;
+        return {
+          'الكود': p.code ?? '',
+          'الاسم': p.name ?? '',
+          'الوصف': p.description ?? '',
+          'السعر': p.price ?? 0,
+          'الكمية قبل البيع': before,
+          'الكمية الحالية': now,
+        };
+      });
 
       const ws = XLSX.utils.json_to_sheet(rows);
       ws['!cols'] = [
@@ -34,8 +45,8 @@ const Inventory = () => {
         { wch: 30 },
         { wch: 24 },
         { wch: 10 },
-        { wch: 14 },
-        { wch: 14 },
+        { wch: 16 },
+        { wch: 16 },
       ];
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, 'الجرد');
