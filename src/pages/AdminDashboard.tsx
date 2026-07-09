@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link, Outlet, useLocation, Navigate } from 'react-router-dom';
-import { Package, ShoppingCart, Users, BarChart3, LogOut, Wallet, SearchCode, FileText, Menu, X, Bell, UserCog, Settings as SettingsIcon, TrendingDown, DatabaseBackup, Scissors } from 'lucide-react';
+import { Package, ShoppingCart, Users, BarChart3, LogOut, Wallet, SearchCode, FileText, Menu, X, Bell, UserCog, Settings as SettingsIcon, TrendingDown, DatabaseBackup, Scissors, ClipboardList } from 'lucide-react';
 import { buildBackupZip, downloadBlob, backupFilename, todayDateString } from '@/lib/backup';
 import { notifyTelegram } from '@/lib/telegramNotify';
 import { supabase } from '@/integrations/supabase/client';
@@ -31,6 +31,7 @@ const navItems: NavItem[] = [
   { path: '/admin/dashboard/staff', label: 'الموظفين', icon: UserCog, permission: 'admin' },
   { path: '/admin/dashboard/settings', label: 'الإعدادات', icon: SettingsIcon, permission: 'admin' },
   { path: '/admin/dashboard/sales-control', label: 'التحكم في البيع', icon: TrendingDown, permission: 'admin' },
+  { path: '/admin/dashboard/inventory', label: 'الجرد', icon: ClipboardList, permission: 'inventory' },
   { path: '/admin/dashboard/backup', label: 'النسخ الاحتياطي', icon: DatabaseBackup, permission: 'backup' },
 ];
 
