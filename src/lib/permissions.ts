@@ -8,7 +8,8 @@ export type PermissionKey =
   | 'product-images'
   | 'stock-alerts'
   | 'piece-sale'
-  | 'backup';
+  | 'backup'
+  | 'inventory';
 
 export const PERMISSION_LABELS: Record<PermissionKey, string> = {
   products: 'المنتجات',
