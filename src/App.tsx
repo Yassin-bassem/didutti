@@ -53,6 +53,7 @@ const App = () => (
               <Route path="settings" element={<Settings />} />
               <Route path="sales-control" element={<SalesControl />} />
               <Route path="backup" element={<Backup />} />
+              <Route path="inventory" element={<Inventory />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
