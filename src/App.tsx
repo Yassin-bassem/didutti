@@ -22,6 +22,7 @@ import StaffManagement from "./pages/admin/StaffManagement";
 import Settings from "./pages/admin/Settings";
 import SalesControl from "./pages/admin/SalesControl";
 import Backup from "./pages/admin/Backup";
+import Inventory from "./pages/admin/Inventory";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
