@@ -75,7 +75,7 @@ const Inventory = () => {
         <FileSpreadsheet className="h-14 w-14 mx-auto text-primary mb-4" />
         <h2 className="text-lg font-semibold mb-2">ملف الجرد</h2>
         <p className="text-sm text-muted-foreground mb-6 max-w-md mx-auto">
-          الأعمدة: الكود، الاسم، الوصف، السعر، الكمية كانت (الحالية)، الكمية أصبحت (تُملأ يدوياً بعد الجرد)
+          الأعمدة: الكود، الاسم، الوصف، السعر، الكمية قبل البيع، الكمية الحالية
         </p>
         <Button size="lg" onClick={downloadSheet} disabled={loading}>
           {loading ? (
