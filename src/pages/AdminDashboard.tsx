@@ -31,6 +31,7 @@ const navItems: NavItem[] = [
   { path: '/admin/dashboard/staff', label: 'الموظفين', icon: UserCog, permission: 'admin' },
   { path: '/admin/dashboard/settings', label: 'الإعدادات', icon: SettingsIcon, permission: 'admin' },
   { path: '/admin/dashboard/sales-control', label: 'التحكم في البيع', icon: TrendingDown, permission: 'admin' },
+  { path: '/admin/dashboard/inventory', label: 'الجرد', icon: ClipboardList, permission: 'inventory' },
   { path: '/admin/dashboard/backup', label: 'النسخ الاحتياطي', icon: DatabaseBackup, permission: 'backup' },
 ];
 
