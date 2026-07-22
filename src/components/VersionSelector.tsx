@@ -210,6 +210,7 @@ const VersionSelector = () => {
             </div>
           </DialogContent>
         </Dialog>
+        )}
 
         {/* Rename Version Dialog */}
         <Dialog open={renameDialogOpen} onOpenChange={setRenameDialogOpen}>
