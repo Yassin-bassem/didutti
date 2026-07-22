@@ -8,9 +8,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useVersion } from '@/contexts/VersionContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { isAdmin } from '@/lib/permissions';
 
 const VersionSelector = () => {
   const { versions, activeVersion, setActiveVersion, createVersion, renameVersion, deleteVersion, loading } = useVersion();
+  const admin = isAdmin();
   const [newVersionName, setNewVersionName] = useState('');
   const [mergeProducts, setMergeProducts] = useState(false);
   const [merging, setMerging] = useState(false);
@@ -135,18 +137,20 @@ const VersionSelector = () => {
               <span>{version.name}</span>
               {version.is_active && <Check className="h-4 w-4" />}
             </button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              onClick={(e) => {
-                e.stopPropagation();
-                openRenameDialog(version);
-              }}
-            >
-              <Pencil className="h-3 w-3" />
-            </Button>
-            {!version.is_active && (
+            {admin && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openRenameDialog(version);
+                }}
+              >
+                <Pencil className="h-3 w-3" />
+              </Button>
+            )}
+            {admin && !version.is_active && (
               <Button
                 variant="ghost"
                 size="icon"
@@ -163,6 +167,7 @@ const VersionSelector = () => {
         ))}
 
         {/* Create New Version Dialog */}
+        {admin && (
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button variant="outline" size="sm" className="w-full gap-2 mt-2">
@@ -205,6 +210,7 @@ const VersionSelector = () => {
             </div>
           </DialogContent>
         </Dialog>
+        )}
 
         {/* Rename Version Dialog */}
         <Dialog open={renameDialogOpen} onOpenChange={setRenameDialogOpen}>
