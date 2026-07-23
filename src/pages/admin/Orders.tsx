@@ -449,6 +449,8 @@ const Orders = () => {
 
     // Get item to restore stock
     const itemToRemove = selectedOrder.items?.find(i => i.id === itemId);
+    if (!window.confirm(`تأكيد حذف المنتج ${itemToRemove?.product_code ?? ''} من الطلب؟`)) return;
+
     
     const { error } = await supabase.from('order_items').delete().eq('id', itemId);
     if (error) {
