@@ -383,6 +383,8 @@ const Orders = () => {
 
   const handleAddProductToOrder = async () => {
     if (!selectedOrder || !addProductCode.trim() || !activeVersion) return;
+    if (!window.confirm(`تأكيد إضافة المنتج بالكود ${addProductCode.trim()} إلى الطلب؟`)) return;
+
 
     const { data: product, error: productError } = await supabase
       .from('products')
