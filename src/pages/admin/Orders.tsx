@@ -383,6 +383,8 @@ const Orders = () => {
 
   const handleAddProductToOrder = async () => {
     if (!selectedOrder || !addProductCode.trim() || !activeVersion) return;
+    if (!window.confirm(`تأكيد إضافة المنتج بالكود ${addProductCode.trim()} إلى الطلب؟`)) return;
+
 
     const { data: product, error: productError } = await supabase
       .from('products')
@@ -447,6 +449,8 @@ const Orders = () => {
 
     // Get item to restore stock
     const itemToRemove = selectedOrder.items?.find(i => i.id === itemId);
+    if (!window.confirm(`تأكيد حذف المنتج ${itemToRemove?.product_code ?? ''} من الطلب؟`)) return;
+
     
     const { error } = await supabase.from('order_items').delete().eq('id', itemId);
     if (error) {
