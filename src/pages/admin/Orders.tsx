@@ -111,6 +111,7 @@ const Orders = () => {
   const [searchCode, setSearchCode] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [addProductCode, setAddProductCode] = useState('');
+  const [editingQuantities, setEditingQuantities] = useState<Record<string, number>>({});
   const [duplicateCustomer, setDuplicateCustomer] = useState({
     customer_name: '',
     phone: '',
@@ -161,7 +162,8 @@ const Orders = () => {
     const { data } = await supabase
       .from('order_items')
       .select('*')
-      .eq('order_id', orderId);
+      .eq('order_id', orderId)
+      .order('created_at', { ascending: true });
     return data || [];
   };
 
@@ -176,6 +178,13 @@ const Orders = () => {
     const full = { ...order, items };
     setSelectedOrder(full);
     setOriginalOrder(JSON.parse(JSON.stringify(full)));
+
+    const initialQty: Record<string, number> = {};
+    items.forEach((it: any) => {
+      initialQty[it.id] = it.quantity;
+    });
+    setEditingQuantities(initialQty);
+
     setEditDialogOpen(true);
   };
 
@@ -489,6 +498,27 @@ const Orders = () => {
     }
   };
 
+  const confirmAndUpdateQuantity = async (item: OrderItem, newQuantity: number) => {
+    if (!selectedOrder || newQuantity < 1) {
+      toast.error('الكمية يجب أن تكون 1 على الأقل');
+      return;
+    }
+
+    if (newQuantity === item.quantity) return;
+
+    const isPieceOrder = selectedOrder.order_type === 'piece';
+    const promptMsg = isPieceOrder
+      ? `هل أنت متأكد من تعديل كمية المنتج (${item.product_code} - ${item.product_name}) من ${item.quantity} إلى ${newQuantity}؟\n(سيتم خصم ${newQuantity} قطع مباشرة من المخزن)`
+      : `هل أنت متأكد من تعديل كمية المنتج (${item.product_code} - ${item.product_name}) من ${item.quantity} إلى ${newQuantity}؟`;
+
+    if (!window.confirm(promptMsg)) {
+      setEditingQuantities((prev) => ({ ...prev, [item.id]: item.quantity }));
+      return;
+    }
+
+    await handleUpdateItemQuantity(item.id, newQuantity);
+  };
+
   const handleUpdateItemQuantity = async (itemId: string, quantity: number) => {
     if (!selectedOrder || quantity < 1) return;
 
@@ -497,12 +527,19 @@ const Orders = () => {
     if (!currentItem) return;
     
     const quantityDiff = quantity - currentItem.quantity;
+    const isPieceOrder = selectedOrder.order_type === 'piece';
     
-    // Update stock (negative diff means more items, so deduct; positive means fewer items, so restore)
+    // Update stock
+    // For piece sale: deduct the new quantity directly from stock without delta calculations
+    // For normal order: deduct the quantity diff (newQty - oldQty) from stock
     const { data: product } = await supabase.from('products').select('stock_quantity').eq('id', currentItem.product_id).single();
     if (product) {
+      const newStock = isPieceOrder
+        ? product.stock_quantity - quantity
+        : product.stock_quantity - quantityDiff;
+
       await supabase.from('products').update({
-        stock_quantity: product.stock_quantity - quantityDiff
+        stock_quantity: newStock
       }).eq('id', currentItem.product_id);
     }
 
@@ -516,9 +553,16 @@ const Orders = () => {
         }).eq('id', currentItem.product_id);
       }
     } else {
+      toast.success('تم تحديث الكمية بنجاح');
       const items = await loadOrderItems(selectedOrder.id);
       setSelectedOrder({ ...selectedOrder, items });
       
+      const newEditingQty: Record<string, number> = {};
+      items.forEach((it: any) => {
+        newEditingQty[it.id] = it.quantity;
+      });
+      setEditingQuantities(newEditingQty);
+
       // Update order totals with description multiplier
       const newSubtotal = items.reduce((sum, item) => sum + calculateItemTotal(item), 0);
       await supabase.from('orders').update({
@@ -600,6 +644,7 @@ const Orders = () => {
           <p><strong>العميل:</strong> ${order.customer_name}</p>
           ${order.shop_name ? `<p><strong>المحل:</strong> ${order.shop_name}</p>` : ''}
           <p><strong>الهاتف:</strong> ${order.phone}</p>
+          ${order.staff_member_name ? `<p><strong>الموظف:</strong> ${order.staff_member_name}</p>` : ''}
           ${order.address ? `<p><strong>العنوان:</strong> ${order.address}</p>` : ''}
           <p><strong>التاريخ:</strong> ${new Date(order.created_at).toLocaleDateString('ar-EG')}</p>
           ${order.extra_info ? `<p><strong>ملاحظات:</strong> ${order.extra_info}</p>` : ''}
@@ -615,7 +660,7 @@ const Orders = () => {
             </tr>
           </thead>
           <tbody>
-            ${[...order.items].sort((a, b) => a.product_code.localeCompare(b.product_code, undefined, { numeric: true })).map(item => {
+            ${order.items.map(item => {
               // Parse description for quantity calculation (e.g., "200/20" means pack of 20)
               let displayQuantity = item.quantity;
               const multiplier = getDescriptionMultiplier(item.product_description);
@@ -693,13 +738,11 @@ const Orders = () => {
       const discountAmount = getDiscountAmount(order, subtotal);
       const total = subtotal - order.deposit_amount - discountAmount;
 
-      const items = [...order.items]
-        .sort((a, b) => a.product_code.localeCompare(b.product_code, undefined, { numeric: true }))
-        .map((item) => {
-          const multiplier = getDescriptionMultiplier(item.product_description);
-          const displayQuantity = multiplier > 1 ? item.quantity * multiplier : item.quantity;
-          return { ...item, displayQuantity, itemTotal: calculateItemTotal(item) };
-        });
+      const items = order.items.map((item) => {
+        const multiplier = getDescriptionMultiplier(item.product_description);
+        const displayQuantity = multiplier > 1 ? item.quantity * multiplier : item.quantity;
+        return { ...item, displayQuantity, itemTotal: calculateItemTotal(item) };
+      });
 
       await downloadInvoicePDF({
         order_number: order.order_number,
@@ -708,6 +751,7 @@ const Orders = () => {
         phone: order.phone,
         address: order.address,
         extra_info: order.extra_info,
+        staff_member_name: order.staff_member_name,
         created_at: order.created_at,
         order_type: order.order_type,
         deposit_amount: order.deposit_amount,
@@ -904,6 +948,7 @@ const Orders = () => {
                 {selectedOrder.address && <div><strong>العنوان:</strong> {selectedOrder.address}</div>}
                 {selectedOrder.delivery_date && <div><strong>تاريخ التسليم:</strong> {selectedOrder.delivery_date}</div>}
                 {selectedOrder.shipping_company && <div><strong>شركة الشحن:</strong> {selectedOrder.shipping_company}</div>}
+                {selectedOrder.staff_member_name && <div><strong>اسم الموظف:</strong> {selectedOrder.staff_member_name}</div>}
               </div>
               <div className="border rounded-lg overflow-hidden">
                 <table className="w-full text-sm">
@@ -1176,6 +1221,14 @@ const Orders = () => {
                       onChange={(e) => setSelectedOrder({ ...selectedOrder, shipping_company: e.target.value })}
                     />
                   </div>
+                  <div>
+                    <label className="text-sm text-muted-foreground">اسم الموظف</label>
+                    <Input
+                      value={selectedOrder.staff_member_name || ''}
+                      onChange={(e) => setSelectedOrder({ ...selectedOrder, staff_member_name: e.target.value })}
+                      placeholder="أدخل اسم الموظف"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -1246,6 +1299,7 @@ const Orders = () => {
                       deposit_amount: selectedOrder.deposit_amount,
                       discount: selectedOrder.discount || 0,
                       discount_type: selectedOrder.discount_type || 'amount',
+                      staff_member_name: selectedOrder.staff_member_name || null,
                       total: calcTotal,
                     }).eq('id', selectedOrder.id);
 
@@ -1307,6 +1361,7 @@ const Orders = () => {
                           deposit_amount: 'مبلغ العربون',
                           discount: 'الخصم',
                           discount_type: 'نوع الخصم',
+                          staff_member_name: 'اسم الموظف',
                         };
                         const changes = diffObjects(originalOrder as any, selectedOrder as any, labels);
                         if (Math.abs((originalOrder as any).total - calcTotal) > 0.001) {
@@ -1360,6 +1415,8 @@ const Orders = () => {
                     <tbody>
                       {selectedOrder.items?.map((item) => {
                         const itemTotal = calculateItemTotal(item);
+                        const currentQty = editingQuantities[item.id] ?? item.quantity;
+                        const isQtyChanged = currentQty !== item.quantity && currentQty >= 1;
                         return (
                           <tr key={item.id} className="border-t">
                             <td className="p-3">
@@ -1368,14 +1425,34 @@ const Orders = () => {
                             </td>
                             <td className="p-3">{item.price} ج.م</td>
                             <td className="p-3">
-                              <Input
-                                type="number"
-                                min="1"
-                                value={item.quantity}
-                                onChange={(e) => handleUpdateItemQuantity(item.id, parseInt(e.target.value) || 1)}
-                                className="w-20"
-                                dir="ltr"
-                              />
+                              <div className="flex items-center gap-1.5">
+                                <Input
+                                  type="number"
+                                  min="1"
+                                  value={currentQty}
+                                  onChange={(e) => {
+                                    const val = parseInt(e.target.value) || 0;
+                                    setEditingQuantities((prev) => ({ ...prev, [item.id]: val }));
+                                  }}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && isQtyChanged) {
+                                      confirmAndUpdateQuantity(item, currentQty);
+                                    }
+                                  }}
+                                  className="w-20"
+                                  dir="ltr"
+                                />
+                                {isQtyChanged && (
+                                  <Button
+                                    size="sm"
+                                    className="px-2.5 py-1 h-9 text-xs bg-green-600 hover:bg-green-700 text-white font-bold"
+                                    onClick={() => confirmAndUpdateQuantity(item, currentQty)}
+                                    title="تأكيد التعديل"
+                                  >
+                                    تأكيد
+                                  </Button>
+                                )}
+                              </div>
                             </td>
                             <td className="p-3 font-bold">{itemTotal.toFixed(2)} ج.م</td>
                             <td className="p-3">

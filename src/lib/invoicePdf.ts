@@ -17,6 +17,7 @@ export interface InvoiceData {
   phone: string;
   address?: string | null;
   extra_info?: string | null;
+  staff_member_name?: string | null;
   created_at: string;
   order_type?: string | null;
   deposit_amount: number;
@@ -104,6 +105,7 @@ function buildInvoiceHTML(data: InvoiceData, logoDataUrl: string): string {
         ${data.shop_name ? `<div><strong>المحل:</strong> ${data.shop_name}</div>` : '<div></div>'}
         <div><strong>الهاتف:</strong> ${data.phone}</div>
         <div><strong>التاريخ:</strong> ${dateStr}</div>
+        ${data.staff_member_name ? `<div><strong>الموظف:</strong> ${data.staff_member_name}</div>` : ''}
         ${data.address ? `<div style="grid-column:1/-1;"><strong>العنوان:</strong> ${data.address}</div>` : ''}
         ${data.extra_info ? `<div style="grid-column:1/-1;"><strong>ملاحظات:</strong> ${data.extra_info}</div>` : ''}
       </div>
