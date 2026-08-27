@@ -292,8 +292,10 @@ const Orders = () => {
     for (const item of items) {
       const { data: product } = await supabase.from('products').select('stock_quantity').eq('id', item.product_id).single();
       if (product) {
+        const isPieceOrder = orderToDelete?.order_type === 'piece';
+        const multiplier = isPieceOrder ? 1 : getDescriptionMultiplier(item.product_description);
         await supabase.from('products').update({
-          stock_quantity: product.stock_quantity + item.quantity
+          stock_quantity: product.stock_quantity + (item.quantity * multiplier)
         }).eq('id', item.product_id);
       }
     }
@@ -469,8 +471,10 @@ const Orders = () => {
       if (itemToRemove) {
         const { data: product } = await supabase.from('products').select('stock_quantity').eq('id', itemToRemove.product_id).single();
         if (product) {
+          const isPieceOrder = selectedOrder.order_type === 'piece';
+          const multiplier = isPieceOrder ? 1 : getDescriptionMultiplier(itemToRemove.product_description);
           await supabase.from('products').update({
-            stock_quantity: product.stock_quantity + itemToRemove.quantity
+            stock_quantity: product.stock_quantity + (itemToRemove.quantity * multiplier)
           }).eq('id', itemToRemove.product_id);
         }
       }
@@ -506,10 +510,7 @@ const Orders = () => {
 
     if (newQuantity === item.quantity) return;
 
-    const isPieceOrder = selectedOrder.order_type === 'piece';
-    const promptMsg = isPieceOrder
-      ? `هل أنت متأكد من تعديل كمية المنتج (${item.product_code} - ${item.product_name}) من ${item.quantity} إلى ${newQuantity}؟\n(سيتم خصم ${newQuantity} قطع مباشرة من المخزن)`
-      : `هل أنت متأكد من تعديل كمية المنتج (${item.product_code} - ${item.product_name}) من ${item.quantity} إلى ${newQuantity}؟`;
+    const promptMsg = `هل أنت متأكد من تعديل كمية المنتج (${item.product_code} - ${item.product_name}) من ${item.quantity} إلى ${newQuantity}؟`;
 
     if (!window.confirm(promptMsg)) {
       setEditingQuantities((prev) => ({ ...prev, [item.id]: item.quantity }));
@@ -528,15 +529,13 @@ const Orders = () => {
     
     const quantityDiff = quantity - currentItem.quantity;
     const isPieceOrder = selectedOrder.order_type === 'piece';
+    const multiplier = isPieceOrder ? 1 : getDescriptionMultiplier(currentItem.product_description);
+    const pieceDiff = quantityDiff * multiplier;
     
-    // Update stock
-    // For piece sale: deduct the new quantity directly from stock without delta calculations
-    // For normal order: deduct the quantity diff (newQty - oldQty) from stock
+    // Update stock by pieceDiff (difference between old and new quantity in pieces)
     const { data: product } = await supabase.from('products').select('stock_quantity').eq('id', currentItem.product_id).single();
     if (product) {
-      const newStock = isPieceOrder
-        ? product.stock_quantity - quantity
-        : product.stock_quantity - quantityDiff;
+      const newStock = product.stock_quantity - pieceDiff;
 
       await supabase.from('products').update({
         stock_quantity: newStock
