@@ -948,6 +948,7 @@ const Orders = () => {
                 {selectedOrder.delivery_date && <div><strong>تاريخ التسليم:</strong> {selectedOrder.delivery_date}</div>}
                 {selectedOrder.shipping_company && <div><strong>شركة الشحن:</strong> {selectedOrder.shipping_company}</div>}
                 {selectedOrder.staff_member_name && <div><strong>اسم الموظف:</strong> {selectedOrder.staff_member_name}</div>}
+                {selectedOrder.extra_info && <div className="col-span-2"><strong>معلومات إضافية:</strong> {selectedOrder.extra_info}</div>}
               </div>
               <div className="border rounded-lg overflow-hidden">
                 <table className="w-full text-sm">
@@ -1228,6 +1229,14 @@ const Orders = () => {
                       placeholder="أدخل اسم الموظف"
                     />
                   </div>
+                  <div className="col-span-2">
+                    <label className="text-sm text-muted-foreground">معلومات إضافية / ملاحظات</label>
+                    <Input
+                      value={selectedOrder.extra_info || ''}
+                      onChange={(e) => setSelectedOrder({ ...selectedOrder, extra_info: e.target.value })}
+                      placeholder="أدخل أي ملاحظات أو معلومات إضافية"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -1299,6 +1308,7 @@ const Orders = () => {
                       discount: selectedOrder.discount || 0,
                       discount_type: selectedOrder.discount_type || 'amount',
                       staff_member_name: selectedOrder.staff_member_name || null,
+                      extra_info: selectedOrder.extra_info || null,
                       total: calcTotal,
                     }).eq('id', selectedOrder.id);
 
@@ -1361,6 +1371,7 @@ const Orders = () => {
                           discount: 'الخصم',
                           discount_type: 'نوع الخصم',
                           staff_member_name: 'اسم الموظف',
+                          extra_info: 'معلومات إضافية',
                         };
                         const changes = diffObjects(originalOrder as any, selectedOrder as any, labels);
                         if (Math.abs((originalOrder as any).total - calcTotal) > 0.001) {
