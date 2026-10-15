@@ -609,6 +609,12 @@ const Orders = () => {
     const orderDiscount = getDiscountAmount(order, calculatedSubtotal);
     const calculatedTotal = calculatedSubtotal - order.deposit_amount - orderDiscount;
 
+    const totalProducts = order.items.length;
+    const totalPieces = order.items.reduce((sum, item) => {
+      const multiplier = getDescriptionMultiplier(item.product_description);
+      return sum + (multiplier > 1 ? item.quantity * multiplier : item.quantity);
+    }, 0);
+
     const invoiceHtml = `
       <!DOCTYPE html>
       <html dir="rtl" lang="ar">
@@ -651,6 +657,7 @@ const Orders = () => {
         <table>
           <thead>
             <tr>
+              <th style="width:35px;text-align:center;">#</th>
               <th>الكود</th>
               <th>المنتج</th>
               <th>السعر</th>
@@ -659,7 +666,7 @@ const Orders = () => {
             </tr>
           </thead>
           <tbody>
-            ${order.items.map(item => {
+            ${order.items.map((item, index) => {
               // Parse description for quantity calculation (e.g., "200/20" means pack of 20)
               let displayQuantity = item.quantity;
               const multiplier = getDescriptionMultiplier(item.product_description);
@@ -669,8 +676,9 @@ const Orders = () => {
               const itemTotal = calculateItemTotal(item);
               return `
                 <tr>
+                  <td style="text-align:center;font-weight:bold;color:#1e2a5e;">${index + 1}</td>
                   <td>${item.product_code}</td>
-                  <td>${item.product_name}</td>
+                  <td><strong style="color:#1e2a5e;margin-left:4px;">#${index + 1}</strong> ${item.product_name}</td>
                   <td>${item.price} ج.م</td>
                   <td>${displayQuantity}</td>
                   <td>${itemTotal.toFixed(2)} ج.م</td>
@@ -678,8 +686,24 @@ const Orders = () => {
               `;
             }).join('')}
           </tbody>
+          <tfoot>
+            <tr style="background:#f3f4f6;font-weight:bold;">
+              <td colspan="4" style="text-align:right;padding:10px;color:#1e2a5e;">
+                إجمالي عدد المنتجات: <strong>${totalProducts} منتج</strong>
+              </td>
+              <td style="text-align:center;padding:10px;color:#1e2a5e;">
+                ${totalPieces} قطعة
+              </td>
+              <td style="text-align:right;padding:10px;color:#1e2a5e;">
+                ${calculatedSubtotal.toFixed(2)} ج.م
+              </td>
+            </tr>
+          </tfoot>
         </table>
         <div class="totals">
+          <div style="padding:8px 0;margin-bottom:8px;border-bottom:2px solid #1e2a5e;font-size:1.1em;font-weight:bold;color:#1e2a5e;">
+            إجمالي عدد المنتجات: ${totalProducts} منتج${totalPieces > totalProducts ? ` (${totalPieces} قطعة)` : ''}
+          </div>
           ${order.order_type === 'gift' ? `
             <p>الإجمالي الفرعي: ${calculatedSubtotal.toFixed(2)} ج.م</p>
             <p style="color:#9d174d;font-weight:bold;">خصم الهدية: -${calculatedSubtotal.toFixed(2)} ج.م</p>
@@ -936,7 +960,14 @@ const Orders = () => {
       <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>طلب رقم #{selectedOrder?.order_number}</DialogTitle>
+            <DialogTitle className="flex items-center justify-between">
+              <span>طلب رقم #{selectedOrder?.order_number}</span>
+              {selectedOrder?.items && (
+                <Badge variant="outline" className="font-bold text-primary border-primary/30 bg-primary/5">
+                  {selectedOrder.items.length} منتجات
+                </Badge>
+              )}
+            </DialogTitle>
           </DialogHeader>
           {selectedOrder && (
             <div className="space-y-4">
@@ -954,6 +985,7 @@ const Orders = () => {
                 <table className="w-full text-sm">
                   <thead className="bg-muted">
                     <tr>
+                      <th className="p-3 text-center w-12 font-bold">#</th>
                       <th className="p-3 text-right">المنتج</th>
                       <th className="p-3 text-right">السعر</th>
                       <th className="p-3 text-right">الكمية</th>
@@ -961,38 +993,91 @@ const Orders = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {selectedOrder.items?.map((item) => {
+                    {selectedOrder.items?.map((item, index) => {
                       const itemTotal = calculateItemTotal(item);
                       return (
-                        <tr key={item.id} className="border-t">
+                        <tr key={item.id} className="border-t hover:bg-muted/30">
+                          <td className="p-3 text-center font-bold text-primary">
+                            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold">
+                              {index + 1}
+                            </span>
+                          </td>
                           <td className="p-3">
-                            <p className="font-medium">{item.product_name}</p>
-                            <p className="text-xs text-muted-foreground">#{item.product_code}</p>
+                            <p className="font-medium">
+                              <span className="text-muted-foreground font-bold ml-1.5">#{index + 1}</span>
+                              {item.product_name}
+                            </p>
+                            <p className="text-xs text-muted-foreground">كود: #{item.product_code}</p>
                           </td>
                           <td className="p-3">{item.price} ج.م</td>
-                          <td className="p-3">{item.quantity}</td>
-                          <td className="p-3">{itemTotal.toFixed(2)} ج.م</td>
+                          <td className="p-3 font-semibold">{item.quantity}</td>
+                          <td className="p-3 font-semibold">{itemTotal.toFixed(2)} ج.م</td>
                         </tr>
                       );
                     })}
                   </tbody>
+                  {selectedOrder.items && selectedOrder.items.length > 0 && (
+                    <tfoot className="bg-muted/50 border-t font-semibold">
+                      <tr>
+                        <td colSpan={3} className="p-3 text-right">
+                          <span className="font-bold text-foreground">إجمالي عدد المنتجات: </span>
+                          <span className="bg-primary/10 text-primary px-2.5 py-0.5 rounded-full text-xs font-bold mr-1">
+                            {selectedOrder.items.length} منتج
+                          </span>
+                        </td>
+                        <td className="p-3 font-bold text-primary text-right">
+                          {selectedOrder.items.reduce((sum, it) => sum + (it.quantity || 0), 0)} قطعة
+                        </td>
+                        <td className="p-3"></td>
+                      </tr>
+                    </tfoot>
+                  )}
                 </table>
               </div>
-              <div className="text-left space-y-1">
+              <div className="bg-muted/30 p-4 rounded-lg space-y-2 text-sm border">
                 {(() => {
                   const calcSubtotal = selectedOrder.items?.reduce((sum, item) => sum + calculateItemTotal(item), 0) || 0;
                   const calcDiscountAmt = getDiscountAmount(selectedOrder, calcSubtotal);
                   const calcTotal = calcSubtotal - selectedOrder.deposit_amount - calcDiscountAmt;
+                  const totalProductsCount = selectedOrder.items?.length || 0;
+                  const totalPiecesCount = selectedOrder.items?.reduce((sum, item) => {
+                    const multiplier = getDescriptionMultiplier(item.product_description);
+                    return sum + (item.quantity * multiplier);
+                  }, 0) || 0;
+                  const totalRawQuantity = selectedOrder.items?.reduce((sum, item) => sum + item.quantity, 0) || 0;
+                  const displayPieces = totalPiecesCount > totalProductsCount ? totalPiecesCount : totalRawQuantity;
+
                   return (
                     <>
-                      <p>الإجمالي الفرعي: {calcSubtotal.toFixed(2)} ج.م</p>
+                      <div className="flex justify-between items-center py-1.5 border-b border-border/70 text-foreground font-bold text-base">
+                        <span>إجمالي عدد المنتجات في الطلب:</span>
+                        <span className="text-primary bg-primary/10 px-3 py-1 rounded-full">
+                          {totalProductsCount} {totalProductsCount === 1 ? 'منتج' : totalProductsCount === 2 ? 'منتجان' : (totalProductsCount >= 3 && totalProductsCount <= 10) ? 'منتجات' : 'منتج'}
+                          {displayPieces > totalProductsCount && (
+                            <span className="text-xs font-normal text-muted-foreground mr-1.5">({displayPieces} قطعة)</span>
+                          )}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center py-1">
+                        <span>الإجمالي الفرعي:</span>
+                        <span className="font-medium">{calcSubtotal.toFixed(2)} ج.م</span>
+                      </div>
                       {calcDiscountAmt > 0 && (
-                        <p className="text-orange-600">الخصم{selectedOrder.discount_type === 'percent' ? ` (${selectedOrder.discount}%)` : ''}: -{calcDiscountAmt.toFixed(2)} ج.م</p>
+                        <div className="flex justify-between items-center py-1 text-orange-600">
+                          <span>الخصم{selectedOrder.discount_type === 'percent' ? ` (${selectedOrder.discount}%)` : ''}:</span>
+                          <span className="font-medium">-{calcDiscountAmt.toFixed(2)} ج.م</span>
+                        </div>
                       )}
                       {selectedOrder.deposit_amount > 0 && (
-                        <p className="text-secondary">العربون: -{selectedOrder.deposit_amount.toFixed(2)} ج.م</p>
+                        <div className="flex justify-between items-center py-1 text-secondary">
+                          <span>العربون:</span>
+                          <span className="font-medium">-{selectedOrder.deposit_amount.toFixed(2)} ج.م</span>
+                        </div>
                       )}
-                      <p className="text-xl font-bold text-primary">المطلوب: {calcTotal.toFixed(2)} ج.م</p>
+                      <div className="flex justify-between items-center pt-2 border-t font-bold text-lg text-primary">
+                        <span>المطلوب:</span>
+                        <span>{calcTotal.toFixed(2)} ج.م</span>
+                      </div>
                     </>
                   );
                 })()}
@@ -1107,11 +1192,19 @@ const Orders = () => {
 
               {/* Products Preview */}
               <div className="border rounded-lg p-4 space-y-4">
-                <h3 className="font-bold text-lg border-b pb-2">المنتجات (من الطلب الأصلي)</h3>
+                <div className="flex justify-between items-center border-b pb-2">
+                  <h3 className="font-bold text-lg">المنتجات (من الطلب الأصلي)</h3>
+                  {selectedOrder.items && (
+                    <Badge variant="outline" className="font-bold text-primary border-primary/30 bg-primary/5">
+                      {selectedOrder.items.length} منتجات
+                    </Badge>
+                  )}
+                </div>
                 <div className="border rounded-lg overflow-hidden">
                   <table className="w-full text-sm">
                     <thead className="bg-muted">
                       <tr>
+                        <th className="p-3 text-center w-12 font-bold">#</th>
                         <th className="p-3 text-right">المنتج</th>
                         <th className="p-3 text-right">السعر</th>
                         <th className="p-3 text-right">الكمية</th>
@@ -1119,21 +1212,45 @@ const Orders = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {selectedOrder.items?.map((item) => {
+                      {selectedOrder.items?.map((item, index) => {
                         const itemTotal = calculateItemTotal(item);
                         return (
-                          <tr key={item.id} className="border-t">
+                          <tr key={item.id} className="border-t hover:bg-muted/30">
+                            <td className="p-3 text-center font-bold text-primary">
+                              <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold">
+                                {index + 1}
+                              </span>
+                            </td>
                             <td className="p-3">
-                              <p className="font-medium">{item.product_name}</p>
+                              <p className="font-medium">
+                                <span className="text-muted-foreground font-bold ml-1.5">#{index + 1}</span>
+                                {item.product_name}
+                              </p>
                               <p className="text-xs text-muted-foreground">#{item.product_code}</p>
                             </td>
                             <td className="p-3">{item.price} ج.م</td>
-                            <td className="p-3">{item.quantity}</td>
-                            <td className="p-3">{itemTotal.toFixed(2)} ج.م</td>
+                            <td className="p-3 font-semibold">{item.quantity}</td>
+                            <td className="p-3 font-semibold">{itemTotal.toFixed(2)} ج.م</td>
                           </tr>
                         );
                       })}
                     </tbody>
+                    {selectedOrder.items && selectedOrder.items.length > 0 && (
+                      <tfoot className="bg-muted/50 border-t font-semibold">
+                        <tr>
+                          <td colSpan={3} className="p-3 text-right">
+                            <span className="font-bold text-foreground">إجمالي عدد المنتجات: </span>
+                            <span className="bg-primary/10 text-primary px-2.5 py-0.5 rounded-full text-xs font-bold mr-1">
+                              {selectedOrder.items.length} منتج
+                            </span>
+                          </td>
+                          <td className="p-3 font-bold text-primary text-right">
+                            {selectedOrder.items.reduce((sum, it) => sum + (it.quantity || 0), 0)} قطعة
+                          </td>
+                          <td className="p-3"></td>
+                        </tr>
+                      </tfoot>
+                    )}
                   </table>
                 </div>
               </div>
@@ -1143,8 +1260,19 @@ const Orders = () => {
                 {(() => {
                   const calcSubtotal = selectedOrder.items?.reduce((sum, item) => sum + calculateItemTotal(item), 0) || 0;
                   const calcTotal = calcSubtotal - (duplicateCustomer.deposit_amount || 0);
+                  const totalProductsCount = selectedOrder.items?.length || 0;
+                  const totalPiecesCount = selectedOrder.items?.reduce((sum, item) => {
+                    const multiplier = getDescriptionMultiplier(item.product_description);
+                    return sum + (item.quantity * multiplier);
+                  }, 0) || 0;
                   return (
                     <>
+                      <div className="flex justify-between items-center py-1 text-sm border-b pb-2 mb-2 font-bold text-foreground">
+                        <span>إجمالي عدد المنتجات:</span>
+                        <span className="text-primary bg-primary/10 px-2.5 py-0.5 rounded-full">
+                          {totalProductsCount} منتج{totalPiecesCount > totalProductsCount ? ` (${totalPiecesCount} قطعة)` : ''}
+                        </span>
+                      </div>
                       <p>الإجمالي الفرعي: {calcSubtotal.toFixed(2)} ج.م</p>
                       {duplicateCustomer.deposit_amount > 0 && (
                         <p className="text-secondary">العربون: -{duplicateCustomer.deposit_amount.toFixed(2)} ج.م</p>
@@ -1398,7 +1526,14 @@ const Orders = () => {
 
               {/* Products Section */}
               <div className="border rounded-lg p-4 space-y-4">
-                <h3 className="font-bold text-lg border-b pb-2">المنتجات</h3>
+                <div className="flex justify-between items-center border-b pb-2">
+                  <h3 className="font-bold text-lg">المنتجات</h3>
+                  {selectedOrder.items && (
+                    <Badge variant="outline" className="font-bold text-primary border-primary/30 bg-primary/5">
+                      {selectedOrder.items.length} منتجات
+                    </Badge>
+                  )}
+                </div>
                 <div className="flex gap-2">
                   <Input
                     placeholder="أدخل كود المنتج"
@@ -1415,6 +1550,7 @@ const Orders = () => {
                   <table className="w-full text-sm">
                     <thead className="bg-muted">
                       <tr>
+                        <th className="p-3 text-center w-12 font-bold">#</th>
                         <th className="p-3 text-right">المنتج</th>
                         <th className="p-3 text-right">السعر</th>
                         <th className="p-3 text-right">الكمية</th>
@@ -1423,14 +1559,22 @@ const Orders = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {selectedOrder.items?.map((item) => {
+                      {selectedOrder.items?.map((item, index) => {
                         const itemTotal = calculateItemTotal(item);
                         const currentQty = editingQuantities[item.id] ?? item.quantity;
                         const isQtyChanged = currentQty !== item.quantity && currentQty >= 1;
                         return (
-                          <tr key={item.id} className="border-t">
+                          <tr key={item.id} className="border-t hover:bg-muted/30">
+                            <td className="p-3 text-center font-bold text-primary">
+                              <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold">
+                                {index + 1}
+                              </span>
+                            </td>
                             <td className="p-3">
-                              <p className="font-medium">{item.product_name}</p>
+                              <p className="font-medium">
+                                <span className="text-muted-foreground font-bold ml-1.5">#{index + 1}</span>
+                                {item.product_name}
+                              </p>
                               <p className="text-xs text-muted-foreground">#{item.product_code}</p>
                             </td>
                             <td className="p-3">{item.price} ج.م</td>
@@ -1474,6 +1618,22 @@ const Orders = () => {
                         );
                       })}
                     </tbody>
+                    {selectedOrder.items && selectedOrder.items.length > 0 && (
+                      <tfoot className="bg-muted/50 border-t font-semibold">
+                        <tr>
+                          <td colSpan={3} className="p-3 text-right">
+                            <span className="font-bold text-foreground">إجمالي عدد المنتجات: </span>
+                            <span className="bg-primary/10 text-primary px-2.5 py-0.5 rounded-full text-xs font-bold mr-1">
+                              {selectedOrder.items.length} منتج
+                            </span>
+                          </td>
+                          <td className="p-3 font-bold text-primary text-right">
+                            {selectedOrder.items.reduce((sum, it) => sum + (editingQuantities[it.id] ?? it.quantity), 0)} قطعة
+                          </td>
+                          <td colSpan={2}></td>
+                        </tr>
+                      </tfoot>
+                    )}
                   </table>
                 </div>
               </div>
@@ -1483,8 +1643,15 @@ const Orders = () => {
                   const calcSubtotal = selectedOrder.items?.reduce((sum, item) => sum + calculateItemTotal(item), 0) || 0;
                   const calcDiscountAmt = getDiscountAmount(selectedOrder, calcSubtotal);
                   const calcTotal = calcSubtotal - selectedOrder.deposit_amount - calcDiscountAmt;
+                  const totalProductsCount = selectedOrder.items?.length || 0;
                   return (
                     <>
+                      <div className="flex justify-between items-center py-1 text-sm border-b pb-2 mb-2 font-bold text-foreground">
+                        <span>إجمالي عدد المنتجات:</span>
+                        <span className="text-primary bg-primary/10 px-2.5 py-0.5 rounded-full">
+                          {totalProductsCount} منتج
+                        </span>
+                      </div>
                       <p>الإجمالي الفرعي: {calcSubtotal.toFixed(2)} ج.م</p>
                       {calcDiscountAmt > 0 && (
                         <p className="text-orange-600">الخصم{selectedOrder.discount_type === 'percent' ? ` (${selectedOrder.discount}%)` : ''}: -{calcDiscountAmt.toFixed(2)} ج.م</p>

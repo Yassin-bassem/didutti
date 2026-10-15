@@ -555,6 +555,11 @@ const Checkout = () => {
     });
     
     invoiceText += `━━━━━━━━━━━━━━━━\n`;
+    const totalPieces = orderDetails.items.reduce((sum, item) => {
+      const multiplier = getDescriptionMultiplier(item.description);
+      return sum + (multiplier > 1 ? item.quantity * multiplier : item.quantity);
+    }, 0);
+    invoiceText += `🔢 *إجمالي عدد المنتجات:* ${orderDetails.items.length} منتج${totalPieces > orderDetails.items.length ? ` (${totalPieces} قطعة)` : ''}\n`;
     invoiceText += `💰 *الإجمالي الفرعي:* ${orderDetails.subtotal.toFixed(2)} ج.م\n`;
     if (orderDetails.depositAmount > 0) {
       const methodLabel = orderDetails.depositMethod === 'instapay' ? 'InstaPay' : 

@@ -64,10 +64,17 @@ function buildInvoiceHTML(data: InvoiceData, logoDataUrl: string): string {
   const isGift = data.order_type === 'gift';
   const isPiece = data.order_type === 'piece';
 
-  const itemsRows = data.items.map((it) => `
+  const totalProducts = data.items.length;
+  const totalPieces = data.items.reduce((sum, it) => sum + (it.displayQuantity || it.quantity || 0), 0);
+
+  const itemsRows = data.items.map((it, idx) => `
     <tr>
+      <td style="border:1px solid #d1d5db;padding:8px;text-align:center;font-weight:bold;color:#1e2a5e;">${idx + 1}</td>
       <td style="border:1px solid #d1d5db;padding:8px;text-align:center;">${it.product_code}</td>
-      <td style="border:1px solid #d1d5db;padding:8px;text-align:right;">${it.product_name}</td>
+      <td style="border:1px solid #d1d5db;padding:8px;text-align:right;">
+        <span style="display:inline-block;margin-left:6px;font-weight:bold;color:#1e2a5e;">#${idx + 1}</span>
+        ${it.product_name}
+      </td>
       <td style="border:1px solid #d1d5db;padding:8px;text-align:center;">${it.price} ج.م</td>
       <td style="border:1px solid #d1d5db;padding:8px;text-align:center;">${it.displayQuantity}</td>
       <td style="border:1px solid #d1d5db;padding:8px;text-align:center;">${fmt(it.itemTotal)}</td>
@@ -76,11 +83,19 @@ function buildInvoiceHTML(data: InvoiceData, logoDataUrl: string): string {
 
   const totals = isGift
     ? `
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:2px solid #1e2a5e;margin-bottom:6px;font-size:15px;font-weight:700;color:#1e2a5e;">
+        <span>إجمالي عدد المنتجات:</span>
+        <span>${totalProducts} منتج${totalPieces > totalProducts ? ` (${totalPieces} قطعة)` : ''}</span>
+      </div>
       <div style="display:flex;justify-content:space-between;padding:6px 0;"><span>الإجمالي الفرعي:</span><span>${fmt(data.subtotal)}</span></div>
       <div style="display:flex;justify-content:space-between;padding:6px 0;color:#9d174d;"><span>خصم الهدية:</span><span>-${fmt(data.subtotal)}</span></div>
       <div style="display:flex;justify-content:space-between;padding:10px 0;font-size:20px;font-weight:700;color:#9d174d;border-top:2px solid #9d174d;margin-top:6px;"><span>المطلوب:</span><span>0.00 ج.م 🎁 (هدية)</span></div>
     `
     : `
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:2px solid #1e2a5e;margin-bottom:6px;font-size:15px;font-weight:700;color:#1e2a5e;">
+        <span>إجمالي عدد المنتجات:</span>
+        <span>${totalProducts} منتج${totalPieces > totalProducts ? ` (${totalPieces} قطعة)` : ''}</span>
+      </div>
       <div style="display:flex;justify-content:space-between;padding:6px 0;"><span>الإجمالي الفرعي:</span><span>${fmt(data.subtotal)}</span></div>
       ${data.discountAmount > 0 ? `<div style="display:flex;justify-content:space-between;padding:6px 0;color:#b91c1c;"><span>الخصم${data.discount_type === 'percent' ? ` (${data.discount}%)` : ''}:</span><span>-${fmt(data.discountAmount)}</span></div>` : ''}
       ${data.deposit_amount > 0 ? `<div style="display:flex;justify-content:space-between;padding:6px 0;"><span>العربون (${data.deposit_method || ''}):</span><span>-${fmt(data.deposit_amount)}</span></div>` : ''}
@@ -113,14 +128,28 @@ function buildInvoiceHTML(data: InvoiceData, logoDataUrl: string): string {
       <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:20px;">
         <thead>
           <tr style="background:#1e2a5e;color:#fff;">
-            <th style="border:1px solid #1e2a5e;padding:10px;">الكود</th>
-            <th style="border:1px solid #1e2a5e;padding:10px;">المنتج</th>
-            <th style="border:1px solid #1e2a5e;padding:10px;">السعر</th>
-            <th style="border:1px solid #1e2a5e;padding:10px;">الكمية</th>
-            <th style="border:1px solid #1e2a5e;padding:10px;">الإجمالي</th>
+            <th style="border:1px solid #1e2a5e;padding:10px;text-align:center;width:35px;">#</th>
+            <th style="border:1px solid #1e2a5e;padding:10px;text-align:center;">الكود</th>
+            <th style="border:1px solid #1e2a5e;padding:10px;text-align:right;">المنتج</th>
+            <th style="border:1px solid #1e2a5e;padding:10px;text-align:center;">السعر</th>
+            <th style="border:1px solid #1e2a5e;padding:10px;text-align:center;">الكمية</th>
+            <th style="border:1px solid #1e2a5e;padding:10px;text-align:center;">الإجمالي</th>
           </tr>
         </thead>
         <tbody>${itemsRows}</tbody>
+        <tfoot>
+          <tr style="background:#f9fafb;font-weight:bold;">
+            <td colspan="4" style="border:1px solid #d1d5db;padding:8px 12px;text-align:right;color:#1e2a5e;">
+              إجمالي عدد المنتجات: <strong>${totalProducts} منتج</strong>
+            </td>
+            <td style="border:1px solid #d1d5db;padding:8px;text-align:center;color:#1e2a5e;">
+              ${totalPieces} قطعة
+            </td>
+            <td style="border:1px solid #d1d5db;padding:8px;text-align:center;color:#1e2a5e;">
+              ${fmt(data.subtotal)}
+            </td>
+          </tr>
+        </tfoot>
       </table>
 
       <div style="margin-right:auto;width:60%;font-size:14px;">${totals}</div>
